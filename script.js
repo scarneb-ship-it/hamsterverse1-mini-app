@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'День A · Силовая база',
             subtitle: 'Турник + гантели · развиваем силу спины, ног и плеч',
             exercises: [
-                // Убрана подсказка про замену подтягиваний
                 { num: '238', name: 'Подтягивания широким хватом', sets: 4, mode: 'reps', repsLabel: 'Максимум',
                     rest: 135, restLabel: '120–150 сек' },
                 { num: '15', name: 'Приседания (с гантелью у груди)', sets: 4, mode: 'reps', repsLabel: '8–10',
@@ -46,8 +45,48 @@ document.addEventListener('DOMContentLoaded', function() {
                     rest: 45, restLabel: '45 сек' }
             ]
         },
-        B: { /* ... без изменений ... */ },
-        C: { /* ... без изменений ... */ }
+        B: {
+            title: 'День B · Мышечный рост',
+            subtitle: 'Гипертрофия и изоляция · акцент на ноги и руки',
+            exercises: [
+                { num: '58 / 66', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps',
+                    repsLabel: '10 на каждую', sides: true, rest: 90, restLabel: '90 сек' },
+                { num: '14', name: 'Отжимания от пола (классические)', sets: 3, mode: 'reps', repsLabel: '10–15',
+                    rest: 75, restLabel: '60–90 сек' },
+                { num: '241', name: 'Подтягивания обратным хватом', sets: 3, mode: 'reps', repsLabel: 'Максимум',
+                    rest: 90, restLabel: '90 сек' },
+                { num: '182', name: 'Подъём гантелей в стороны', sets: 3, mode: 'reps', repsLabel: '12–15',
+                    rest: 50, restLabel: '45–60 сек' },
+                { num: '195 / 196', name: 'Подъём гантели сидя на бицепс (левая / правая)', sets: 3, mode: 'reps',
+                    repsLabel: '10–12 на каждую', sides: true, rest: 60, restLabel: '60 сек' },
+                { num: '181', name: 'Подъём гантели на трицепс (стоя)', sets: 3, mode: 'reps', repsLabel: '10–12',
+                    rest: 60, restLabel: '60 сек' },
+                { num: '5', name: 'Обратные скручивания', sets: 3, mode: 'reps', repsLabel: '15–20',
+                    rest: 30, restLabel: '30 сек' }
+            ]
+        },
+        C: {
+            title: 'День C · Жиросжигание и кор',
+            subtitle: 'Круговая тренировка · 4 круга · отдых 90 сек между кругами',
+            circuit: true,
+            rounds: 4,
+            restBetweenRounds: 90,
+            exercises: [
+                { num: '221', name: 'Медленный альпинист', mode: 'time', duration: 40,
+                    tech: 'Без прыжков. Плавно подтягиваем колено к локтю.' },
+                { num: '75 / 74', name: 'Мостик на одной ноге (правая / левая)', mode: 'reps',
+                    repsLabel: '12 на каждую', sides: true,
+                    tech: 'В верхней точке — сильное сжатие ягодицы.' },
+                { num: '95', name: 'Жук на спине', mode: 'reps', repsLabel: '10 раз',
+                    tech: 'Идеальное упражнение для глубоких мышц живота.' },
+                { num: '12', name: 'Обратные отжимания от стула', mode: 'reps', repsLabel: '12–15 раз',
+                    tech: 'Ноги прямые, локти назад.' },
+                { num: '101', name: 'Гиперэкстензии (лёжа на животе)', mode: 'reps', repsLabel: '15 раз',
+                    tech: 'Оторвать грудь и ноги от пола, задержаться 2 сек.' },
+                { num: '23 / 29', name: 'Планка на правом / левом боку', mode: 'time', duration: 30, sides: true,
+                    tech: 'Без прогиба в пояснице.' }
+            ]
+        }
     };
 
     // Карта изображений
@@ -58,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
         'Гребля в наклоне (с гантелями)': 'icons/greblavnaklon.jpg',
         'Ягодичный мостик (с гантелью на тазу)': 'icons/godicnmostik.jpg',
         'Планка': 'icons/planka.jpg',
-        // B
         'Болгарский сплит-присед (левая / правая)': 'icons/bolgarskisplitpris.jpg',
         'Отжимания от пола (классические)': 'icons/otchimania.jpg',
         'Подтягивания обратным хватом': 'icons/podtiagivaniaobratnimhvat.jpg',
@@ -66,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
         'Подъём гантели сидя на бицепс (левая / правая)': 'icons/podemgantelsidnabiceps.jpg',
         'Подъём гантели на трицепс (стоя)': 'icons/podemgantelnatriceps.jpg',
         'Обратные скручивания': 'icons/obratnskruchiv.jpg',
-        // C
         'Медленный альпинист': 'icons/medlennalpinist.jpg',
         'Мостик на одной ноге (правая / левая)': 'icons/mostiknaodnounage.jpg',
         'Жук на спине': 'icons/csuknaspine.jpg',
@@ -75,41 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
         'Планка на правом / левом боку': 'icons/plankanaboku.jpg'
     };
 
-    /* ... остальной код до рендеринга ... */
-
-    // В renderFreeform убираем блок plate
-    function renderFreeform(kind) {
-        const meta = kind === 'warmup' ? WARMUP : COOLDOWN;
-        let list = '';
-        if (kind === 'warmup') {
-            list = WARMUP.items.map((it, i) => {
-                const done = sessionDone.warmup.has(i + '-' + it.num);
-                const label = it.mode === 'time' ? `${it.duration} сек` : it.repsLabel;
-                return `<div class="free-item ${done ? 'is-done' : ''}">
-                    <span class="free-item__name">${it.name}</span>
-                    <span class="free-item__time">${label}</span>
-                </div>`;
-            }).join('');
-        } else {
-            list = `<div class="free-item">
-                <span class="free-item__name">Растяжки на выбор: ${COOLDOWN.numbersText}</span>
-                <span class="free-item__time">${COOLDOWN.totalSeconds / 60} мин</span>
-            </div>`;
-        }
-        mainContent.innerHTML = `
-          <div class="section-head">
-            <div><h2>${meta.title}</h2><p>${meta.subtitle}</p></div>
-          </div>
-          <div class="free-list" style="display:flex;flex-direction:column;gap:8px;">${list}</div>
-          <div class="timer-box">
-            <p>${kind === 'warmup' ? 'Пройдите все упражнения подряд с таймером — точные секунды из плана.' : COOLDOWN.note}</p>
-            <button class="btn btn--primary" id="startFreeBtn">Начать таймер · ${meta.totalSeconds / 60} мин</button>
-          </div>`;
-        $('#startFreeBtn').addEventListener('click', () => startSession(kind, buildFreeformSteps(kind)));
-    }
-
-    /* ... остальной код без изменений ... */
-});
+    const PROGRESSION_RULE_TEXT =
+        'Сделали максимум повторений во всех подходах на двух тренировках подряд — берите гантель тяжелее на 1–2 кг. Гантели неразборные? Увеличивайте отдых до верхней границы диапазона.';
 
     /* ---------- 2. STORAGE ---------- */
     const LOG_KEY = 'ironplan_log_v1';
@@ -338,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (step.note) { playerNote.hidden = false; playerNote.textContent = step.note; }
         else { playerNote.hidden = true; }
 
-        // Картинка упражнения
+        // Картинка
         if (step.image) {
             playerImage.src = step.image;
             playerImage.alt = step.exName;
@@ -357,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (step.kind === 'rest') {
                 mainActionBtn.textContent = 'Пауза';
                 skipBtn.hidden = false;
-                startTimer();
+                startTimer();   // автостарт отдыха
             } else {
                 mainActionBtn.textContent = 'Старт';
                 skipBtn.hidden = false;
@@ -472,6 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const plateContent = imgSrc
             ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">`
             : `<div class="plate">${ex.num}</div>`;
+        // note не показываем, т.к. убрали подсказку о замене
         return `
           <div class="card ${done ? 'is-done' : ''}" data-day="${dayKey}" data-ex="${exIdx}">
             ${plateContent}
@@ -482,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>🎯 <b>${repsText}</b></span>
                 <span>⏱ <b>${ex.restLabel}</b> отдых</span>
               </div>
-              ${ex.note ? `<span class="card__alt">⚠ есть замена без турника</span>` : ''}
+              ${ex.note ? `<span class="card__alt">⚠ ${ex.note}</span>` : ''}
             </div>
             <button class="card__go" aria-label="Начать упражнение">
               <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
@@ -548,16 +553,17 @@ document.addEventListener('DOMContentLoaded', function() {
             list = WARMUP.items.map((it, i) => {
                 const done = sessionDone.warmup.has(i + '-' + it.num);
                 const label = it.mode === 'time' ? `${it.duration} сек` : it.repsLabel;
+                // Убрана plate (номер)
                 return `<div class="free-item ${done ? 'is-done' : ''}">
-              <div class="plate">${it.num}</div>
-              <span class="free-item__name">${it.name}</span>
-              <span class="free-item__time">${label}</span>
-            </div>`;
+                    <span class="free-item__name">${it.name}</span>
+                    <span class="free-item__time">${label}</span>
+                </div>`;
             }).join('');
         } else {
-            list = `<div class="free-item"><div class="plate">Z</div>
-            <span class="free-item__name">Растяжки на выбор: ${COOLDOWN.numbersText}</span>
-            <span class="free-item__time">${COOLDOWN.totalSeconds / 60} мин</span></div>`;
+            list = `<div class="free-item">
+                <span class="free-item__name">Растяжки на выбор: ${COOLDOWN.numbersText}</span>
+                <span class="free-item__time">${COOLDOWN.totalSeconds / 60} мин</span>
+            </div>`;
         }
         mainContent.innerHTML = `
           <div class="section-head">
