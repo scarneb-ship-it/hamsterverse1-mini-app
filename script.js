@@ -32,15 +32,15 @@ document.addEventListener('DOMContentLoaded', function() {
             subtitle: 'Турник + гантели · развиваем силу спины, ног и плеч',
             exercises: [
                 { num: '238', name: 'Подтягивания широким хватом', sets: 4, mode: 'reps', repsLabel: 'Максимум',
-                    rest: 135, restLabel: '120–150 сек', weighted: false },
+                    rest: 135, restLabel: '120–150 сек' },
                 { num: '15', name: 'Приседания (с гантелью у груди)', sets: 4, mode: 'reps', repsLabel: '8–10',
-                    rest: 120, restLabel: '120 сек', weighted: true },
+                    rest: 120, restLabel: '120 сек' },
                 { num: '178', name: 'Жим гантелей над головой (сидя)', sets: 4, mode: 'reps', repsLabel: '8–10',
-                    rest: 105, restLabel: '90–120 сек', weighted: true },
+                    rest: 105, restLabel: '90–120 сек' },
                 { num: '179', name: 'Гребля в наклоне (с гантелями)', sets: 3, mode: 'reps', repsLabel: '10–12',
-                    rest: 90, restLabel: '90 сек', weighted: true },
+                    rest: 90, restLabel: '90 сек' },
                 { num: '39', name: 'Ягодичный мостик (с гантелью на тазу)', sets: 3, mode: 'reps', repsLabel: '12–15',
-                    rest: 60, restLabel: '60 сек', weighted: true },
+                    rest: 60, restLabel: '60 сек' },
                 { num: '4', name: 'Планка', sets: 3, mode: 'time', duration: 55, durationLabel: '45–60 сек',
                     rest: 45, restLabel: '45 сек' }
             ]
@@ -50,17 +50,17 @@ document.addEventListener('DOMContentLoaded', function() {
             subtitle: 'Гипертрофия и изоляция · акцент на ноги и руки',
             exercises: [
                 { num: '58 / 66', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps',
-                    repsLabel: '10 на каждую', sides: true, rest: 90, restLabel: '90 сек', weighted: true },
+                    repsLabel: '10 на каждую', sides: true, rest: 90, restLabel: '90 сек' },
                 { num: '14', name: 'Отжимания от пола (классические)', sets: 3, mode: 'reps', repsLabel: '10–15',
                     rest: 75, restLabel: '60–90 сек' },
                 { num: '241', name: 'Подтягивания обратным хватом', sets: 3, mode: 'reps', repsLabel: 'Максимум',
                     rest: 90, restLabel: '90 сек' },
                 { num: '182', name: 'Подъём гантелей в стороны', sets: 3, mode: 'reps', repsLabel: '12–15',
-                    rest: 50, restLabel: '45–60 сек', weighted: true },
+                    rest: 50, restLabel: '45–60 сек' },
                 { num: '195 / 196', name: 'Подъём гантели сидя на бицепс (левая / правая)', sets: 3, mode: 'reps',
-                    repsLabel: '10–12 на каждую', sides: true, rest: 60, restLabel: '60 сек', weighted: true },
+                    repsLabel: '10–12 на каждую', sides: true, rest: 60, restLabel: '60 сек' },
                 { num: '181', name: 'Подъём гантели на трицепс (стоя)', sets: 3, mode: 'reps', repsLabel: '10–12',
-                    rest: 60, restLabel: '60 сек', weighted: true },
+                    rest: 60, restLabel: '60 сек' },
                 { num: '5', name: 'Обратные скручивания', sets: 3, mode: 'reps', repsLabel: '15–20',
                     rest: 30, restLabel: '30 сек' }
             ]
@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Карта изображений
     const exerciseImages = {
         'Подтягивания широким хватом': 'icons/podtiagivaniechirokim.jpg',
         'Приседания (с гантелью у груди)': 'icons/prisedansgantel.jpg',
@@ -111,11 +112,11 @@ document.addEventListener('DOMContentLoaded', function() {
         'Планка на правом / левом боку': 'icons/plankanaboku.jpg'
     };
 
+    const PROGRESSION_RULE_TEXT =
+        'Сделали максимум повторений во всех подходах на двух тренировках подряд — берите гантель тяжелее на 1–2 кг. Гантели неразборные? Увеличивайте отдых до верхней границы диапазона.';
+
     /* ---------- 2. STORAGE ---------- */
     const LOG_KEY = 'ironplan_log_v1';
-    const SETTINGS_KEY = 'ironplan_settings_v1';
-    const WEIGHTS_KEY = 'ironplan_weights_v1';
-
     function getLog() {
         try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
         catch (e) { return []; }
@@ -144,26 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
             d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     }
 
-    function getSettings() {
-        try {
-            return Object.assign({ sound: true, haptics: true, wakeLock: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {});
-        } catch (e) { return { sound: true, haptics: true, wakeLock: true }; }
-    }
-    function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
-
-    function getWeights() {
-        try { return JSON.parse(localStorage.getItem(WEIGHTS_KEY)) || {}; }
-        catch (e) { return {}; }
-    }
-    function saveWeight(exName, kg) {
-        const w = getWeights();
-        if (kg === '' || kg === null || isNaN(kg)) { delete w[exName]; }
-        else { w[exName] = Number(kg); }
-        localStorage.setItem(WEIGHTS_KEY, JSON.stringify(w));
-    }
-
-    let settings = getSettings();
-
     /* ---------- 3. DOM REFS ---------- */
     const $ = sel => document.querySelector(sel);
     const dayTabs = $('#dayTabs');
@@ -185,11 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const qualityModal = $('#qualityModal');
     const logDrawer = $('#logDrawer');
     const logList = $('#logList');
-    const settingsDrawer = $('#settingsDrawer');
     const playerImageContainer = $('#playerImageContainer');
     const playerImage = $('#playerImage');
-    const playerSwipeArea = $('#playerSwipeArea');
-    const splash = $('#splash');
 
     /* ---------- 4. STATE ---------- */
     let currentView = 'A';
@@ -201,23 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let totalTime = 0;
     let ticking = false;
     let intervalId = null;
-    let wakeLockRef = null;
-
-    /* URL-параметр для ярлыков "на главном экране" (?view=A) */
-    const params = new URLSearchParams(location.search);
-    const shortcutView = params.get('view');
-    if (shortcutView && ['warmup', 'A', 'B', 'C', 'cooldown'].includes(shortcutView)) {
-        currentView = shortcutView;
-    }
-
-    if (splash) {
-        setTimeout(() => { splash.remove(); }, 900);
-    }
 
     /* ---------- 5. AUDIO / HAPTICS ---------- */
     let audioCtx = null;
     function beep(freq = 880, dur = 0.12) {
-        if (!settings.sound) return;
         try {
             audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
@@ -232,30 +197,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) {}
     }
     function haptic(ms) {
-        if (!settings.haptics) return;
         if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    /* ---------- 5b. WAKE LOCK (не гасить экран во время тренировки) ---------- */
-    async function acquireWakeLock() {
-        if (!settings.wakeLock || !('wakeLock' in navigator)) return;
-        try {
-            wakeLockRef = await navigator.wakeLock.request('screen');
-        } catch (e) { wakeLockRef = null; }
-    }
-    function releaseWakeLock() {
-        if (wakeLockRef) {
-            wakeLockRef.release().catch(() => {});
-            wakeLockRef = null;
-        }
-    }
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && !player.hidden) acquireWakeLock();
-    });
-
     /* ---------- 6. STEP GENERATION ---------- */
     function enrichStep(step, ex) {
-        if (ex && exerciseImages[ex.name]) step.image = exerciseImages[ex.name];
+        if (ex && exerciseImages[ex.name]) {
+            step.image = exerciseImages[ex.name];
+        }
         return step;
     }
 
@@ -356,7 +305,6 @@ document.addEventListener('DOMContentLoaded', function() {
         stepIdx = startIdx;
         player.hidden = false;
         document.body.style.overflow = 'hidden';
-        acquireWakeLock();
         setupStep();
     }
 
@@ -394,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (step.note) { playerNote.hidden = false; playerNote.textContent = step.note; }
         else { playerNote.hidden = true; }
 
+        // Картинка
         if (step.image) {
             playerImage.src = step.image;
             playerImage.alt = step.exName;
@@ -412,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (step.kind === 'rest') {
                 mainActionBtn.textContent = 'Пауза';
                 skipBtn.hidden = false;
-                startTimer();
+                startTimer();   // автостарт отдыха
             } else {
                 mainActionBtn.textContent = 'Старт';
                 skipBtn.hidden = false;
@@ -449,6 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
             nextStep();
             return;
         }
+
         if (ticking) {
             clearInterval(intervalId);
             ticking = false;
@@ -462,17 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function skipStep() {
         clearInterval(intervalId);
         ticking = false;
-        haptic(20);
         nextStep();
-    }
-
-    function prevStep() {
-        if (stepIdx === 0) return;
-        clearInterval(intervalId);
-        ticking = false;
-        haptic(20);
-        stepIdx--;
-        setupStep();
     }
 
     function nextStep() {
@@ -495,7 +435,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ticking = false;
         player.hidden = true;
         document.body.style.overflow = '';
-        releaseWakeLock();
     }
 
     function finishSession() {
@@ -511,39 +450,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /* ---------- 7b. SWIPE GESTURES В ПЛЕЕРЕ ---------- */
-    (function setupSwipe() {
-        let startX = 0, startY = 0, tracking = false;
-        playerSwipeArea.addEventListener('touchstart', (e) => {
-            if (!e.touches || e.touches.length !== 1) return;
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            tracking = true;
-        }, { passive: true });
-        playerSwipeArea.addEventListener('touchend', (e) => {
-            if (!tracking) return;
-            tracking = false;
-            const endX = (e.changedTouches && e.changedTouches[0].clientX) || startX;
-            const endY = (e.changedTouches && e.changedTouches[0].clientY) || startY;
-            const dx = endX - startX;
-            const dy = endY - startY;
-            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-                if (dx < 0) { if (!skipBtn.hidden) skipStep(); }
-                else { prevStep(); }
-            }
-        }, { passive: true });
-    })();
-
     /* ---------- 8. RENDERING ---------- */
     function renderTabs() {
-        [...dayTabs.querySelectorAll('.navtab')].forEach(tab => {
+        [...dayTabs.querySelectorAll('.tab')].forEach(tab => {
             tab.classList.toggle('is-active', tab.dataset.view === currentView);
         });
-        const headerSub = $('#headerSubtitle');
-        if (headerSub) {
-            const labels = { warmup: 'Разминка · 5 мин', A: 'Силовая база', B: 'Мышечный рост', C: 'Жиросжигание', cooldown: 'Заминка · 3 мин' };
-            headerSub.textContent = labels[currentView] || '3 дня · гантели + турник';
-        }
     }
 
     function renderBanner() {
@@ -565,16 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const plateContent = imgSrc
             ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">`
             : `<div class="plate">${ex.num}</div>`;
-        const weights = getWeights();
-        const currentWeight = weights[ex.name] !== undefined ? weights[ex.name] : '';
-        const weightBlock = ex.weighted
-            ? `<div class="card__weight" data-stop-nav="1">
-                 <label for="w-${dayKey}-${exIdx}">Вес</label>
-                 <input type="number" inputmode="decimal" min="0" step="0.5" id="w-${dayKey}-${exIdx}"
-                    class="weight-input" data-ex-name="${ex.name}" value="${currentWeight}" placeholder="—">
-                 <span>кг</span>
-               </div>`
-            : '';
+        // note не показываем, т.к. убрали подсказку о замене
         return `
           <div class="card ${done ? 'is-done' : ''}" data-day="${dayKey}" data-ex="${exIdx}">
             ${plateContent}
@@ -585,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>🎯 <b>${repsText}</b></span>
                 <span>⏱ <b>${ex.restLabel}</b> отдых</span>
               </div>
-              ${weightBlock}
+              ${ex.note ? `<span class="card__alt">⚠ ${ex.note}</span>` : ''}
             </div>
             <button class="card__go" aria-label="Начать упражнение">
               <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
@@ -617,11 +519,11 @@ document.addEventListener('DOMContentLoaded', function() {
               <div><h2>${day.title}</h2><p>${day.subtitle}</p></div>
             </div>
             <div class="circuit-block">
-              <div class="circuit-block__head"><h3>Круг × ${day.rounds}, отдых ${day.restBetweenRounds} сек</h3><span>без пауз внутри круга</span></div>
+              <div class="circuit-block__head"><h3>Круг × ${day.rounds}, отдых ${day.restBetweenRounds} сек между кругами</h3><span>без пауз внутри круга</span></div>
               <div class="circuit-list">${rows}</div>
               <button class="start-circuit" id="startCircuitBtn">Начать круговую тренировку</button>
             </div>`;
-            $('#startCircuitBtn').addEventListener('click', () => { haptic(15); startSession('C', buildCircuitSteps('C')); });
+            $('#startCircuitBtn').addEventListener('click', () => startSession('C', buildCircuitSteps('C')));
             return;
         }
 
@@ -634,19 +536,13 @@ document.addEventListener('DOMContentLoaded', function() {
           <button class="start-circuit" id="startDayBtn">Начать тренировку целиком</button>
           <div style="height:2px"></div>
           ${cards}`;
-        $('#startDayBtn').addEventListener('click', () => { haptic(15); startSession(dayKey, buildDaySteps(dayKey, 0)); });
+        $('#startDayBtn').addEventListener('click', () => startSession(dayKey, buildDaySteps(dayKey, 0)));
         mainContent.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.card__weight')) return;
                 if (!e.target.closest('.card__go')) return;
                 const idx = Number(card.dataset.ex);
-                haptic(15);
                 startSession(dayKey, buildDaySteps(dayKey, idx));
             });
-        });
-        mainContent.querySelectorAll('.weight-input').forEach(inp => {
-            inp.addEventListener('change', () => saveWeight(inp.dataset.exName, inp.value));
-            inp.addEventListener('click', (e) => e.stopPropagation());
         });
     }
 
@@ -657,6 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
             list = WARMUP.items.map((it, i) => {
                 const done = sessionDone.warmup.has(i + '-' + it.num);
                 const label = it.mode === 'time' ? `${it.duration} сек` : it.repsLabel;
+                // Убрана plate (номер)
                 return `<div class="free-item ${done ? 'is-done' : ''}">
                     <span class="free-item__name">${it.name}</span>
                     <span class="free-item__time">${label}</span>
@@ -677,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <p>${kind === 'warmup' ? 'Пройдите все упражнения подряд с таймером — точные секунды из плана.' : COOLDOWN.note}</p>
             <button class="btn btn--primary" id="startFreeBtn">Начать таймер · ${meta.totalSeconds / 60} мин</button>
           </div>`;
-        $('#startFreeBtn').addEventListener('click', () => { haptic(15); startSession(kind, buildFreeformSteps(kind)); });
+        $('#startFreeBtn').addEventListener('click', () => startSession(kind, buildFreeformSteps(kind)));
     }
 
     function renderView() {
@@ -703,26 +600,17 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>`).join('');
     }
 
-    /* ---------- 9b. SETTINGS DRAWER ---------- */
-    function renderSettingsSwitches() {
-        $('#toggleSound').classList.toggle('is-on', settings.sound);
-        $('#toggleSound').setAttribute('aria-checked', String(settings.sound));
-        $('#toggleHaptics').classList.toggle('is-on', settings.haptics);
-        $('#toggleHaptics').setAttribute('aria-checked', String(settings.haptics));
-        $('#toggleWakeLock').classList.toggle('is-on', settings.wakeLock);
-        $('#toggleWakeLock').setAttribute('aria-checked', String(settings.wakeLock));
-    }
-
     /* ---------- 10. EVENTS ---------- */
     dayTabs.addEventListener('click', (e) => {
-        const tab = e.target.closest('.navtab');
+        const tab = e.target.closest('.tab');
         if (!tab) return;
-        haptic(10);
         currentView = tab.dataset.view;
         renderView();
     });
 
     $('#playerClose').addEventListener('click', () => {
+        clearInterval(intervalId);
+        ticking = false;
         closePlayer();
         renderView();
     });
@@ -740,34 +628,13 @@ document.addEventListener('DOMContentLoaded', function() {
         renderView();
     });
 
+    $('#rulesToggle').addEventListener('click', () => {
+        $('#rulesCard').classList.toggle('is-open');
+    });
+
     $('#openLogBtn').addEventListener('click', () => { renderLog(); logDrawer.hidden = false; });
     $('#closeLogBtn').addEventListener('click', () => { logDrawer.hidden = true; });
     logDrawer.addEventListener('click', (e) => { if (e.target === logDrawer) logDrawer.hidden = true; });
-
-    $('#openSettingsBtn').addEventListener('click', () => { renderSettingsSwitches(); settingsDrawer.hidden = false; });
-    $('#closeSettingsBtn').addEventListener('click', () => { settingsDrawer.hidden = true; });
-    settingsDrawer.addEventListener('click', (e) => { if (e.target === settingsDrawer) settingsDrawer.hidden = true; });
-
-    $('#toggleSound').addEventListener('click', () => {
-        settings.sound = !settings.sound; saveSettings(settings); renderSettingsSwitches();
-        if (settings.sound) beep(880, 0.08);
-    });
-    $('#toggleHaptics').addEventListener('click', () => {
-        settings.haptics = !settings.haptics; saveSettings(settings); renderSettingsSwitches();
-        if (settings.haptics) haptic(15);
-    });
-    $('#toggleWakeLock').addEventListener('click', () => {
-        settings.wakeLock = !settings.wakeLock; saveSettings(settings); renderSettingsSwitches();
-        if (!player.hidden) { if (settings.wakeLock) acquireWakeLock(); else releaseWakeLock(); }
-    });
-    $('#resetLogBtn').addEventListener('click', () => {
-        if (confirm('Удалить весь журнал тренировок и сохранённые веса?')) {
-            localStorage.removeItem(LOG_KEY);
-            localStorage.removeItem(WEIGHTS_KEY);
-            renderView();
-            settingsDrawer.hidden = true;
-        }
-    });
 
     $('#dismissBanner').addEventListener('click', () => { progressionBanner.hidden = true; });
 
