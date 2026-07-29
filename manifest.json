@@ -4,8 +4,8 @@
   "description": "Домашняя тренировка с гантелями и турником",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#101114",
-  "theme_color": "#ff5630",
+  "background_color": "#000000",
+  "theme_color": "#FF5A1F",
   "icons": [
     {
       "src": "icons/icon-192.png",
