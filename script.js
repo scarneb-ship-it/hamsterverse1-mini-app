@@ -120,10 +120,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const restAdjust = $('#restAdjust');
     const restMinus = $('#restMinus');
     const restPlus = $('#restPlus');
-    const voiceToggleBtn = $('#voiceToggleBtn');
+
+    const settingsBtn = $('#settingsBtn');
+    const settingsModal = $('#settingsModal');
+    const themeSelect = $('#themeSelect');
+    const voiceToggleCheckbox = $('#voiceToggle');
+    const closeSettingsBtn = $('#closeSettingsBtn');
+
+    /* ========== THEME ========== */
+    function applyTheme(mode) {
+        if (mode === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        } else if (mode === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+            if (mode === 'light') {
+                metaThemeColor.setAttribute('content', '#FFFFFF');
+            } else {
+                metaThemeColor.setAttribute('content', '#FF5A1F');
+            }
+        }
+    }
 
     /* ========== VOICE ========== */
-    let voiceEnabled = localStorage.getItem('voiceEnabled') === 'true';
+    let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
     const synth = window.speechSynthesis;
 
     function speak(text, priority = false) {
@@ -156,13 +180,10 @@ document.addEventListener('DOMContentLoaded', function() {
         speak(String(seconds), true);
     }
 
-    if (voiceEnabled) voiceToggleBtn.classList.add('active');
-    voiceToggleBtn.addEventListener('click', () => {
-        voiceEnabled = !voiceEnabled;
-        localStorage.setItem('voiceEnabled', voiceEnabled);
-        voiceToggleBtn.classList.toggle('active', voiceEnabled);
-        if (!voiceEnabled && synth.speaking) synth.cancel();
-    });
+    // Инициализация UI настроек
+    voiceToggleCheckbox.checked = voiceEnabled;
+    themeSelect.value = localStorage.getItem('theme') || 'system';
+    applyTheme(themeSelect.value);
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -293,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function() {
         else { playerImageContainer.hidden=true; }
 
         ringPhase.textContent = step.kind==='rest'?'ОТДЫХ':(step.duration?'РАБОТА':'ГОТОВ');
-
         announceStep(step);
 
         if (step.duration) {
@@ -512,6 +532,20 @@ document.addEventListener('DOMContentLoaded', function() {
     $('#closeLogBtn').addEventListener('click', ()=>{ logDrawer.hidden=true; });
     logDrawer.addEventListener('click', e=>{ if (e.target===logDrawer) logDrawer.hidden=true; });
     $('#dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
+
+    // Настройки
+    settingsBtn.addEventListener('click', ()=> settingsModal.hidden = false);
+    closeSettingsBtn.addEventListener('click', ()=> settingsModal.hidden = true);
+    settingsModal.addEventListener('click', e=>{ if (e.target===settingsModal) settingsModal.hidden = true; });
+    themeSelect.addEventListener('change', e=>{
+        localStorage.setItem('theme', e.target.value);
+        applyTheme(e.target.value);
+    });
+    voiceToggleCheckbox.addEventListener('change', e=>{
+        voiceEnabled = e.target.checked;
+        localStorage.setItem('voiceEnabled', voiceEnabled);
+        if (!voiceEnabled && synth.speaking) synth.cancel();
+    });
 
     renderView();
 });
