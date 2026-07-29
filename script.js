@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
         title: 'Заминка',
         subtitle: '3 минуты после каждого дня',
         totalSeconds: 3 * 60,
-        numbersText: '№116–122, 142–143, 169–171',
+        numbersText: '116–122, 142–143, 169–171',
         note: 'Выберите любые растяжки из этого списка и удерживайте их всю заминку.'
     };
 
@@ -89,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Карта изображений
     const exerciseImages = {
         'Подтягивания широким хватом': 'icons/podtiagivaniechirokim.jpg',
         'Приседания (с гантелью у груди)': 'icons/prisedansgantel.jpg',
@@ -112,11 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
         'Планка на правом / левом боку': 'icons/plankanaboku.jpg'
     };
 
-    const PROGRESSION_RULE_TEXT =
-        'Сделали максимум повторений во всех подходах на двух тренировках подряд — берите гантель тяжелее на 1–2 кг. Гантели неразборные? Увеличивайте отдых до верхней границы диапазона.';
-
     /* ---------- 2. STORAGE ---------- */
-    const LOG_KEY = 'ironplan_log_v1';
+    const LOG_KEY = 'ironplan_log_v2';
     function getLog() {
         try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
         catch (e) { return []; }
@@ -263,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setLabel: `Подход ${setNum} из ${totalSets}` + (side ? ` · ${side}` : ''),
             duration: ex.mode === 'time' ? ex.duration : null,
             repsLabel: ex.mode === 'time' ? (ex.durationLabel || `${ex.duration} сек`) : ex.repsLabel,
-            note: ex.note || null
+            note: null
         };
     }
     function makeRestStep(ex, exIdx, totalEx, label, duration, restLabel) {
@@ -342,7 +338,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (step.note) { playerNote.hidden = false; playerNote.textContent = step.note; }
         else { playerNote.hidden = true; }
 
-        // Картинка
         if (step.image) {
             playerImage.src = step.image;
             playerImage.alt = step.exName;
@@ -351,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
             playerImageContainer.hidden = true;
         }
 
-        ringPhase.textContent = step.kind === 'rest' ? 'ОТДЫХ' : (step.duration ? 'РАБОТА' : 'ГОТОВНОСТЬ');
+        ringPhase.textContent = step.kind === 'rest' ? 'ОТДЫХ' : (step.duration ? 'РАБОТА' : 'ГОТОВ');
 
         if (step.duration) {
             totalTime = step.duration;
@@ -361,7 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (step.kind === 'rest') {
                 mainActionBtn.textContent = 'Пауза';
                 skipBtn.hidden = false;
-                startTimer();   // автостарт отдыха
+                startTimer();
             } else {
                 mainActionBtn.textContent = 'Старт';
                 skipBtn.hidden = false;
@@ -476,18 +471,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const plateContent = imgSrc
             ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">`
             : `<div class="plate">${ex.num}</div>`;
-        // note не показываем, т.к. убрали подсказку о замене
         return `
           <div class="card ${done ? 'is-done' : ''}" data-day="${dayKey}" data-ex="${exIdx}">
             ${plateContent}
             <div class="card__body">
               <p class="card__name">${ex.name}</p>
               <div class="card__stats">
-                <span>🔁 <b>${ex.sets}</b> подхода</span>
-                <span>🎯 <b>${repsText}</b></span>
-                <span>⏱ <b>${ex.restLabel}</b> отдых</span>
+                <span>${ex.sets} подх.</span>
+                <span>${repsText}</span>
+                <span>отдых ${ex.restLabel}</span>
               </div>
-              ${ex.note ? `<span class="card__alt">⚠ ${ex.note}</span>` : ''}
+              ${ex.note ? `<span class="card__alt">${ex.note}</span>` : ''}
             </div>
             <button class="card__go" aria-label="Начать упражнение">
               <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
@@ -509,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <div class="card__body">
                     <p class="card__name">${ex.name}</p>
                     <div class="card__stats">
-                      <span>🎯 <b>${ex.mode === 'time' ? ex.duration + ' сек' : ex.repsLabel}</b></span>
+                      <span>${ex.mode === 'time' ? ex.duration + ' сек' : ex.repsLabel}</span>
                     </div>
                   </div>
                 </div>`;
@@ -553,7 +547,6 @@ document.addEventListener('DOMContentLoaded', function() {
             list = WARMUP.items.map((it, i) => {
                 const done = sessionDone.warmup.has(i + '-' + it.num);
                 const label = it.mode === 'time' ? `${it.duration} сек` : it.repsLabel;
-                // Убрана plate (номер)
                 return `<div class="free-item ${done ? 'is-done' : ''}">
                     <span class="free-item__name">${it.name}</span>
                     <span class="free-item__time">${label}</span>
@@ -596,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="log-item">
             <span><b>${e.day}</b> · ${dayLabel(e.day)}</span>
             <span>${fmtDate(e.date)}</span>
-            <span>${e.quality ? '💪 макс.' : '· норм'}</span>
+            <span>${e.quality ? 'макс.' : 'норм'}</span>
           </div>`).join('');
     }
 
