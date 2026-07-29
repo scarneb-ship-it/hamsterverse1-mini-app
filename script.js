@@ -90,14 +90,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Карта изображений
+    // Карта изображений – теперь включает A, B и C
     const exerciseImages = {
+        // День A
         'Подтягивания широким хватом': 'icons/podtiagivaniechirokim.jpg',
         'Приседания (с гантелью у груди)': 'icons/prisedansgantel.jpg',
         'Жим гантелей над головой (сидя)': 'icons/chimgantelnadgolov.jpg',
         'Гребля в наклоне (с гантелями)': 'icons/greblavnaklon.jpg',
         'Ягодичный мостик (с гантелью на тазу)': 'icons/godicnmostik.jpg',
-        'Планка': 'icons/planka.jpg'
+        'Планка': 'icons/planka.jpg',
+
+        // День B
+        'Болгарский сплит-присед (левая / правая)': 'icons/bolgarskisplitpris.jpg',
+        'Отжимания от пола (классические)': 'icons/otchimania.jpg',
+        'Подтягивания обратным хватом': 'icons/podtiagivaniaobratnimhvat.jpg',
+        'Подъём гантелей в стороны': 'icons/podemgantelvstoronu.jpg',
+        'Подъём гантели сидя на бицепс (левая / правая)': 'icons/podemgantelsidnabiceps.jpg',
+        'Подъём гантели на трицепс (стоя)': 'icons/podemgantelnatriceps.jpg',
+        'Обратные скручивания': 'icons/obratnskruchiv.jpg',
+
+        // День C
+        'Медленный альпинист': 'icons/medlennalpinist.jpg',
+        'Мостик на одной ноге (правая / левая)': 'icons/mostiknaodnounage.jpg',
+        'Жук на спине': 'icons/csuknaspine.jpg',
+        'Обратные отжимания от стула': 'icons/obratnotchimotstula.jpg',
+        'Гиперэкстензии (лёжа на животе)': 'icons/giperextenzia.jpg',
+        'Планка на правом / левом боку': 'icons/plankanaboku.jpg'
     };
 
     const PROGRESSION_RULE_TEXT =
@@ -188,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    /* ---------- 6. STEP GENERATION (с изображениями) ---------- */
+    /* ---------- 6. STEP GENERATION ---------- */
     function enrichStep(step, ex) {
         if (ex && exerciseImages[ex.name]) {
             step.image = exerciseImages[ex.name];
@@ -286,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }];
     }
 
-    /* ---------- 7. SESSION ENGINE (с автостартом отдыха) ---------- */
+    /* ---------- 7. SESSION ENGINE ---------- */
     function startSession(type, steplist, startIdx = 0) {
         sessionType = type;
         steps = steplist;
@@ -347,17 +365,14 @@ document.addEventListener('DOMContentLoaded', function() {
             updateRing();
 
             if (step.kind === 'rest') {
-                // Автозапуск отдыха
                 mainActionBtn.textContent = 'Пауза';
                 skipBtn.hidden = false;
-                startTimer();
+                startTimer();   // автостарт отдыха
             } else {
-                // Рабочий таймер (планка и т.п.) – ждет нажатия «Старт»
                 mainActionBtn.textContent = 'Старт';
                 skipBtn.hidden = false;
             }
         } else {
-            // Упражнение без таймера (свои повторения)
             totalTime = 0;
             timeLeft = 0;
             ringTime.textContent = '✓';
@@ -384,7 +399,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleTimer() {
         const step = steps[stepIdx];
         if (!step.duration) {
-            // Шаг без таймера (нажатие «Готово»)
             markExerciseProgress(step);
             beep(660, 0.08);
             nextStep();
@@ -392,12 +406,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (ticking) {
-            // Пауза
             clearInterval(intervalId);
             ticking = false;
             mainActionBtn.textContent = 'Продолжить';
         } else {
-            // Запуск (или продолжение)
             mainActionBtn.textContent = 'Пауза';
             startTimer();
         }
