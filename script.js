@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             subtitle: 'Турник + гантели · развиваем силу спины, ног и плеч',
             exercises: [
                 { num: '238', name: 'Подтягивания широким хватом', sets: 4, mode: 'reps', repsLabel: 'Максимум',
-                    rest: 135, restLabel: '120–150 сек' },
+                    rest: 120, restLabel: '120–150 сек' },
                 { num: '15', name: 'Приседания (с гантелью у груди)', sets: 4, mode: 'reps', repsLabel: '8–10',
                     rest: 120, restLabel: '120 сек' },
                 { num: '178', name: 'Жим гантелей над головой (сидя)', sets: 4, mode: 'reps', repsLabel: '8–10',
