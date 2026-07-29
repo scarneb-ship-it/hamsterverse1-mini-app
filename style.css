@@ -22,14 +22,9 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Глобальный сброс, чтобы атрибут hidden гарантированно скрывал элемент */
-[hidden] {
-    display: none !important;
-}
+[hidden] { display: none !important; }
 
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body {
     margin: 0;
@@ -40,7 +35,7 @@ html, body {
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
     background-image: radial-gradient(circle at 8% 0%, rgba(255, 86, 48, .06), transparent 40%), radial-gradient(circle at 100% 20%, rgba(74, 168, 255, .05), transparent 45%);
-    touch-action: manipulation; /* улучшает отклик на мобильных */
+    touch-action: manipulation;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -117,7 +112,7 @@ h1, h2, h3 {
     font-weight: 500;
     padding: 10px 14px;
     border-radius: 100px;
-    min-height: 44px; /* удобная зона касания */
+    min-height: 44px;
 }
 
 .header__log-btn:hover {
@@ -142,7 +137,7 @@ h1, h2, h3 {
     align-items: center;
     gap: 6px;
     transition: transform .15s ease, border-color .15s ease, background .15s ease;
-    min-height: 80px; /* комфортная высота для пальца */
+    min-height: 80px;
 }
 
 .tab:hover {
@@ -274,7 +269,7 @@ h1, h2, h3 {
     align-items: center;
     gap: 14px;
     transition: border-color .15s ease, transform .1s ease;
-    min-height: 70px; /* легче нажимать */
+    min-height: 70px;
 }
 
 .card:active {
@@ -302,9 +297,22 @@ h1, h2, h3 {
     position: relative;
 }
 
+/* Стили для изображений-иконок внутри карточек */
+img.plate {
+    background: none;
+    object-fit: cover;
+    padding: 0;
+    font-size: 0; /* убираем возможный текст */
+}
+
 .card.is-done .plate {
     border-color: var(--go);
     color: var(--go);
+}
+
+/* Убираем псевдоэлемент для img, чтобы не было лишней рамки */
+img.plate::after {
+    display: none;
 }
 
 .plate::after {
