@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Карта: название упражнения → путь к фото
+    // Карта изображений (только для дня A, можно расширить)
     const exerciseImages = {
         'Подтягивания широким хватом': 'icons/podtiagivaniechirokim.jpg',
         'Приседания (с гантелью у груди)': 'icons/prisedansgantel.jpg',
@@ -105,9 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'Сделали максимум повторений во всех подходах на двух тренировках подряд — берите гантель тяжелее на 1–2 кг. Гантели неразборные? Увеличивайте отдых до верхней границы диапазона.';
 
     /* ---------- 2. STORAGE ---------- */
-
     const LOG_KEY = 'ironplan_log_v1';
-
     function getLog() {
         try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
         catch (e) { return []; }
@@ -137,13 +135,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ---------- 3. DOM REFS ---------- */
-
     const $ = sel => document.querySelector(sel);
     const dayTabs = $('#dayTabs');
     const mainContent = $('#mainContent');
     const progressionBanner = $('#progressionBanner');
     const progressionText = $('#progressionText');
-
     const player = $('#player');
     const playerCrumbs = $('#playerCrumbs');
     const playerNum = $('#playerNum');
@@ -156,16 +152,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const ringPhase = $('#ringPhase');
     const mainActionBtn = $('#mainActionBtn');
     const skipBtn = $('#skipBtn');
-
     const qualityModal = $('#qualityModal');
     const logDrawer = $('#logDrawer');
     const logList = $('#logList');
+    const playerImageContainer = $('#playerImageContainer');
+    const playerImage = $('#playerImage');
 
     /* ---------- 4. STATE ---------- */
-
     let currentView = 'A';
     const sessionDone = { A: new Set(), B: new Set(), C: new Set(), warmup: new Set(), cooldown: false };
-
     let steps = [];
     let stepIdx = 0;
     let sessionType = null;
@@ -175,7 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let intervalId = null;
 
     /* ---------- 5. AUDIO / HAPTICS ---------- */
-
     let audioCtx = null;
     function beep(freq = 880, dur = 0.12) {
         try {
@@ -195,7 +189,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    /* ---------- 6. STEP GENERATION ---------- */
+    /* ---------- 6. STEP GENERATION (с добавлением image) ---------- */
+    function enrichStep(step, ex) {
+        // ex может быть упражнением (если есть) – добавляем картинку
+        if (ex && exerciseImages[ex.name]) {
+            step.image = exerciseImages[ex.name];
+        }
+        return step;
+    }
 
     function buildDaySteps(dayKey, fromExerciseIdx = 0) {
         const day = DAYS[dayKey];
@@ -205,10 +206,10 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let s = 1; s <= ex.sets; s++) {
                 if (ex.sides) {
                     ['левая', 'правая'].forEach((side) => {
-                        list.push(makeWorkStep(ex, exIdx, day.exercises.length, s, ex.sets, side));
+                        list.push(enrichStep(makeWorkStep(ex, exIdx, day.exercises.length, s, ex.sets, side), ex));
                     });
                 } else {
-                    list.push(makeWorkStep(ex, exIdx, day.exercises.length, s, ex.sets, null));
+                    list.push(enrichStep(makeWorkStep(ex, exIdx, day.exercises.length, s, ex.sets, null), ex));
                 }
                 const isLastSetOfEx = s === ex.sets;
                 const isLastEx = exIdx === day.exercises.length - 1;
@@ -229,10 +230,10 @@ document.addEventListener('DOMContentLoaded', function() {
             day.exercises.forEach((ex, exIdx) => {
                 if (ex.sides) {
                     ['правая', 'левая'].forEach(side => {
-                        list.push(makeCircuitWorkStep(ex, exIdx, day.exercises.length, r, day.rounds, side));
+                        list.push(enrichStep(makeCircuitWorkStep(ex, exIdx, day.exercises.length, r, day.rounds, side), ex));
                     });
                 } else {
-                    list.push(makeCircuitWorkStep(ex, exIdx, day.exercises.length, r, day.rounds, null));
+                    list.push(enrichStep(makeCircuitWorkStep(ex, exIdx, day.exercises.length, r, day.rounds, null), ex));
                 }
             });
             if (r < day.rounds) {
@@ -288,7 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ---------- 7. SESSION ENGINE ---------- */
-
     function startSession(type, steplist, startIdx = 0) {
         sessionType = type;
         steps = steplist;
@@ -313,6 +313,15 @@ document.addEventListener('DOMContentLoaded', function() {
         playerMeta.textContent = step.setLabel + (step.repsLabel ? ` · ${step.repsLabel}` : '');
         if (step.note) { playerNote.hidden = false; playerNote.textContent = step.note; }
         else { playerNote.hidden = true; }
+
+        // 🆕 Отображение изображения
+        if (step.image) {
+            playerImage.src = step.image;
+            playerImage.alt = step.exName;
+            playerImageContainer.hidden = false;
+        } else {
+            playerImageContainer.hidden = true;
+        }
 
         ringPhase.textContent = step.kind === 'rest' ? 'ОТДЫХ' : (step.duration ? 'РАБОТА' : 'ГОТОВНОСТЬ');
 
@@ -419,7 +428,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ---------- 8. RENDERING ---------- */
-
     function renderTabs() {
         [...dayTabs.querySelectorAll('.tab')].forEach(tab => {
             tab.classList.toggle('is-active', tab.dataset.view === currentView);
@@ -441,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function exerciseCard(ex, exIdx, dayKey) {
         const done = sessionDone[dayKey].has(exIdx);
         const repsText = ex.mode === 'time' ? (ex.durationLabel || `${ex.duration} сек`) : ex.repsLabel;
-        const imgSrc = exerciseImages[ex.name]; // ищем фото по названию
+        const imgSrc = exerciseImages[ex.name];
         const plateContent = imgSrc
             ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">`
             : `<div class="plate">${ex.num}</div>`;
@@ -547,7 +555,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ---------- 9. LOG DRAWER ---------- */
-
     function renderLog() {
         const log = getLog();
         if (!log.length) {
@@ -563,7 +570,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ---------- 10. EVENTS ---------- */
-
     dayTabs.addEventListener('click', (e) => {
         const tab = e.target.closest('.tab');
         if (!tab) return;
@@ -602,7 +608,5 @@ document.addEventListener('DOMContentLoaded', function() {
     $('#dismissBanner').addEventListener('click', () => { progressionBanner.hidden = true; });
 
     /* ---------- 11. INIT ---------- */
-
     renderView();
-
 });
