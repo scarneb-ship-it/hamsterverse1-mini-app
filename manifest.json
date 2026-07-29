@@ -1,21 +1,59 @@
 {
   "name": "Домашний фитнес",
-  "short_name": "Домашний фитнес",
+  "short_name": "Фитнес",
   "description": "Домашняя тренировка с гантелями и турником",
   "start_url": ".",
+  "scope": ".",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#101114",
-  "theme_color": "#ff5630",
+  "theme_color": "#101114",
+  "categories": ["health", "fitness", "sports"],
+  "lang": "ru",
   "icons": [
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "День A · Силовая база",
+      "short_name": "День A",
+      "url": "./?view=A",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "День B · Мышечный рост",
+      "short_name": "День B",
+      "url": "./?view=B",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "День C · Жиросжигание",
+      "short_name": "День C",
+      "url": "./?view=C",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
