@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Карта изображений – теперь включает A, B и C
+    // Карта изображений
     const exerciseImages = {
         // День A
         'Подтягивания широким хватом': 'icons/podtiagivaniechirokim.jpg',
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (step.kind === 'rest') {
                 mainActionBtn.textContent = 'Пауза';
                 skipBtn.hidden = false;
-                startTimer();   // автостарт отдыха
+                startTimer();
             } else {
                 mainActionBtn.textContent = 'Старт';
                 skipBtn.hidden = false;
@@ -503,16 +503,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderDay(dayKey) {
         const day = DAYS[dayKey];
         if (day.circuit) {
-            const rows = day.exercises.map(ex => `
-            <div class="circuit-item">
-              <div class="plate">${ex.num}</div>
-              <div class="card__body">
-                <p class="card__name">${ex.name}</p>
-                <div class="card__stats">
-                  <span>🎯 <b>${ex.mode === 'time' ? ex.duration + ' сек' : ex.repsLabel}</b></span>
-                </div>
-              </div>
-            </div>`).join('');
+            const rows = day.exercises.map(ex => {
+                const imgSrc = exerciseImages[ex.name];
+                const plateContent = imgSrc
+                    ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">`
+                    : `<div class="plate">${ex.num}</div>`;
+                return `
+                <div class="circuit-item">
+                  ${plateContent}
+                  <div class="card__body">
+                    <p class="card__name">${ex.name}</p>
+                    <div class="card__stats">
+                      <span>🎯 <b>${ex.mode === 'time' ? ex.duration + ' сек' : ex.repsLabel}</b></span>
+                    </div>
+                  </div>
+                </div>`;
+            }).join('');
             mainContent.innerHTML = `
             <div class="section-head">
               <div><h2>${day.title}</h2><p>${day.subtitle}</p></div>
