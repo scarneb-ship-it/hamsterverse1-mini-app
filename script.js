@@ -97,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const $ = sel => document.querySelector(sel);
     const app = $('#appContainer');
     const dayTabs = $('#dayTabs');
-    const tabsContainer = $('#tabsContainer');
     const mainContent = $('#mainContent');
     const progressionBanner = $('#progressionBanner');
     const progressionText = $('#progressionText');
@@ -121,6 +120,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const restAdjust = $('#restAdjust');
     const restMinus = $('#restMinus');
     const restPlus = $('#restPlus');
+    const voiceToggleBtn = $('#voiceToggleBtn');
+
+    /* ========== VOICE ========== */
+    let voiceEnabled = localStorage.getItem('voiceEnabled') === 'true';
+    const synth = window.speechSynthesis;
+
+    function speak(text, priority = false) {
+        if (!voiceEnabled) return;
+        if (synth.speaking && !priority) return;
+        if (synth.speaking && priority) synth.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ru-RU';
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        utter.volume = 1.0;
+        synth.speak(utter);
+    }
+
+    function announceStep(step) {
+        if (!voiceEnabled) return;
+        let message = '';
+        if (step.kind === 'work') {
+            message = `${step.exName}. ${step.setLabel}. `;
+            if (step.duration) message += `Длительность ${step.repsLabel}.`;
+            else message += `Повторения: ${step.repsLabel}.`;
+        } else if (step.kind === 'rest') {
+            message = `Отдых ${step.repsLabel}.`;
+        }
+        speak(message);
+    }
+
+    function announceCountdown(seconds) {
+        if (!voiceEnabled || seconds > 5 || seconds < 1) return;
+        speak(String(seconds), true);
+    }
+
+    if (voiceEnabled) voiceToggleBtn.classList.add('active');
+    voiceToggleBtn.addEventListener('click', () => {
+        voiceEnabled = !voiceEnabled;
+        localStorage.setItem('voiceEnabled', voiceEnabled);
+        voiceToggleBtn.classList.toggle('active', voiceEnabled);
+        if (!voiceEnabled && synth.speaking) synth.cancel();
+    });
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -211,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function startSession(type, steplist, startIdx=0) {
         sessionType=type; steps=steplist; stepIdx=startIdx;
         player.hidden=false; document.body.style.overflow='hidden';
+        speak(`Начинаем ${sessionTitle()}`);
         setupStep();
     }
 
@@ -218,7 +261,10 @@ document.addEventListener('DOMContentLoaded', function() {
         ticking=true;
         intervalId=setInterval(()=>{
             timeLeft--;
-            if (timeLeft<=3 && timeLeft>0) beep(440,0.06);
+            if (timeLeft<=3 && timeLeft>0) {
+                beep(440,0.06);
+                if (steps[stepIdx].kind !== 'rest') announceCountdown(timeLeft);
+            }
             if (timeLeft<=0) {
                 clearInterval(intervalId); ticking=false;
                 beep(880,0.18); haptic([120,60,120]);
@@ -247,6 +293,8 @@ document.addEventListener('DOMContentLoaded', function() {
         else { playerImageContainer.hidden=true; }
 
         ringPhase.textContent = step.kind==='rest'?'ОТДЫХ':(step.duration?'РАБОТА':'ГОТОВ');
+
+        announceStep(step);
 
         if (step.duration) {
             totalTime=step.duration; timeLeft=step.duration;
@@ -314,9 +362,15 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (sessionType==='warmup') sessionDone.warmup.add(step.exIdx+'-'+step.exNum);
     }
 
-    function closePlayer() { clearInterval(intervalId); ticking=false; player.hidden=true; document.body.style.overflow=''; restAdjust.hidden=true; }
+    function closePlayer() {
+        clearInterval(intervalId); ticking=false;
+        player.hidden=true; document.body.style.overflow='';
+        restAdjust.hidden=true;
+        if (synth.speaking) synth.cancel();
+    }
 
     function finishSession() {
+        speak('Тренировка завершена. Отличная работа!');
         closePlayer();
         if (sessionType==='A'||sessionType==='B'||sessionType==='C') { qualityModal.hidden=false; qualityModal.dataset.day=sessionType; }
         else if (sessionType==='cooldown') { sessionDone.cooldown=true; renderView(); }
@@ -326,9 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ========== RENDERING ========== */
     function scrollToTab(view) {
         const activeTab = [...dayTabs.children].find(t=>t.dataset.view===view);
-        if (activeTab) {
-            activeTab.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
-        }
+        if (activeTab) activeTab.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
     }
 
     function renderTabs() {
@@ -423,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dx = (e.changedTouches[0].clientX - touchStartX);
         const dy = (e.changedTouches[0].clientY - touchStartY);
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-            const dir = dx > 0 ? -1 : 1; // left swipe = next
+            const dir = dx > 0 ? -1 : 1;
             const curIdx = dayOrder.indexOf(currentView);
             const newIdx = Math.min(Math.max(curIdx+dir, 0), dayOrder.length-1);
             if (newIdx !== curIdx) {
@@ -432,12 +484,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    player.addEventListener('touchstart', e=>{
-        touchStartY = e.touches[0].clientY;
-    }, {passive:true});
+    player.addEventListener('touchstart', e=>{ touchStartY = e.touches[0].clientY; }, {passive:true});
     player.addEventListener('touchend', e=>{
         const dy = (e.changedTouches[0].clientY - touchStartY);
-        if (dy < -50 && !e.target.closest('button')) { // swipe up
+        if (dy < -50 && !e.target.closest('button')) {
             closePlayer();
             renderView();
         }
