@@ -91,6 +91,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Карта: название упражнения → путь к фото
+    const exerciseImages = {
+        'Подтягивания широким хватом': 'icons/podtiagivaniechirokim.jpg',
+        'Приседания (с гантелью у груди)': 'icons/prisedansgantel.jpg',
+        'Жим гантелей над головой (сидя)': 'icons/chimgantelnadgolov.jpg',
+        'Гребля в наклоне (с гантелями)': 'icons/greblavnaklon.jpg',
+        'Ягодичный мостик (с гантелью на тазу)': 'icons/godicnmostik.jpg',
+        'Планка': 'icons/planka.jpg'
+    };
+
     const PROGRESSION_RULE_TEXT =
         'Сделали максимум повторений во всех подходах на двух тренировках подряд — берите гантель тяжелее на 1–2 кг. Гантели неразборные? Увеличивайте отдых до верхней границы диапазона.';
 
@@ -158,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let steps = [];
     let stepIdx = 0;
-    let sessionType = null; // 'A' | 'B' | 'C' | 'warmup' | 'cooldown'
+    let sessionType = null;
     let timeLeft = 0;
     let totalTime = 0;
     let ticking = false;
@@ -179,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             osc.connect(gain).connect(audioCtx.destination);
             osc.start();
             osc.stop(audioCtx.currentTime + dur);
-        } catch (e) { /* audio unavailable */ }
+        } catch (e) {}
     }
     function haptic(ms) {
         if (navigator.vibrate) navigator.vibrate(ms);
@@ -194,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (exIdx < fromExerciseIdx) return;
             for (let s = 1; s <= ex.sets; s++) {
                 if (ex.sides) {
-                    ['левая', 'правая'].forEach((side, i) => {
+                    ['левая', 'правая'].forEach((side) => {
                         list.push(makeWorkStep(ex, exIdx, day.exercises.length, s, ex.sets, side));
                     });
                 } else {
@@ -270,7 +280,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 repsLabel: it.mode === 'time' ? `${it.duration} сек` : it.repsLabel, note: null
             }));
         }
-        // cooldown — single freeform timer
         return [{
             kind: 'work', exNum: 'Z', exName: 'Заминка · растяжка', exIdx: 0, totalEx: 1,
             setLabel: 'Свободный выбор растяжек', duration: COOLDOWN.totalSeconds,
@@ -325,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function sessionTitle() {
         if (sessionType === 'warmup') return 'Разминка';
         if (sessionType === 'cooldown') return 'Заминка';
-        return DAYS[sessionType].circuit ? DAYS[sessionType].title : DAYS[sessionType].title;
+        return DAYS[sessionType].title;
     }
 
     function updateRing() {
@@ -338,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleTimer() {
         const step = steps[stepIdx];
-        if (!step.duration) { // manual step
+        if (!step.duration) {
             markExerciseProgress(step);
             beep(660, 0.08);
             nextStep();
@@ -432,9 +441,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function exerciseCard(ex, exIdx, dayKey) {
         const done = sessionDone[dayKey].has(exIdx);
         const repsText = ex.mode === 'time' ? (ex.durationLabel || `${ex.duration} сек`) : ex.repsLabel;
+        const imgSrc = exerciseImages[ex.name]; // ищем фото по названию
+        const plateContent = imgSrc
+            ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">`
+            : `<div class="plate">${ex.num}</div>`;
         return `
           <div class="card ${done ? 'is-done' : ''}" data-day="${dayKey}" data-ex="${exIdx}">
-            <div class="plate">${ex.num}</div>
+            ${plateContent}
             <div class="card__body">
               <p class="card__name">${ex.name}</p>
               <div class="card__stats">
@@ -488,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#startDayBtn').addEventListener('click', () => startSession(dayKey, buildDaySteps(dayKey, 0)));
         mainContent.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', (e) => {
-                // Запускаем упражнение, только если нажата именно кнопка Go
                 if (!e.target.closest('.card__go')) return;
                 const idx = Number(card.dataset.ex);
                 startSession(dayKey, buildDaySteps(dayKey, idx));
