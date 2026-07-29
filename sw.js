@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ironplan-v3';
+const CACHE_NAME = 'ironplan-v4';
 const urlsToCache = [
   '.',
   'index.html',
@@ -7,12 +7,28 @@ const urlsToCache = [
   'manifest.json',
   'icons/icon-192.png',
   'icons/icon-512.png',
+  // A
   'icons/podtiagivaniechirokim.jpg',
   'icons/prisedansgantel.jpg',
   'icons/chimgantelnadgolov.jpg',
   'icons/greblavnaklon.jpg',
   'icons/godicnmostik.jpg',
-  'icons/planka.jpg'
+  'icons/planka.jpg',
+  // B
+  'icons/bolgarskisplitpris.jpg',
+  'icons/otchimania.jpg',
+  'icons/podtiagivaniaobratnimhvat.jpg',
+  'icons/podemgantelvstoronu.jpg',
+  'icons/podemgantelsidnabiceps.jpg',
+  'icons/podemgantelnatriceps.jpg',
+  'icons/obratnskruchiv.jpg',
+  // C
+  'icons/medlennalpinist.jpg',
+  'icons/mostiknaodnounage.jpg',
+  'icons/csuknaspine.jpg',
+  'icons/obratnotchimotstula.jpg',
+  'icons/giperextenzia.jpg',
+  'icons/plankanaboku.jpg'
 ];
 
 self.addEventListener('install', event => {
