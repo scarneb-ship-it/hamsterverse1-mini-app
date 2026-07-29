@@ -1,12 +1,18 @@
-const CACHE_NAME = 'ironplan-v1';
+const CACHE_NAME = 'ironplan-v3';
 const urlsToCache = [
   '.',
   'index.html',
   'style.css',
   'script.js',
   'manifest.json',
-  'icons/photo_192.jpg',
-  'icons/photo_2026-07-28_21-52-24.jpg'
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/podtiagivaniechirokim.jpg',
+  'icons/prisedansgantel.jpg',
+  'icons/chimgantelnadgolov.jpg',
+  'icons/greblavnaklon.jpg',
+  'icons/godicnmostik.jpg',
+  'icons/planka.jpg'
 ];
 
 self.addEventListener('install', event => {
