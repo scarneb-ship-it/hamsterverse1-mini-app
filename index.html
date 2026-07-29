@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Железный план">
-    <link rel="apple-touch-icon" href="icons/photo_192.jpg">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +24,6 @@
 </head>
 <body>
 <div class="app">
-
     <!-- HEADER -->
     <header class="header">
         <div class="header__brand">
@@ -85,7 +84,6 @@
             Гантели неразборные — увеличивайте отдых до верхней границы диапазона.
         </p>
     </footer>
-
 </div>
 
 <!-- SESSION PLAYER OVERLAY -->
@@ -103,6 +101,11 @@
             <h2 id="playerName">Упражнение</h2>
             <p class="player__meta" id="playerMeta">Подход 1 / 4</p>
             <p class="player__note" id="playerNote" hidden></p>
+        </div>
+
+        <!-- 🆕 Изображение упражнения -->
+        <div class="player__image" id="playerImageContainer" hidden>
+            <img id="playerImage" src="" alt="">
         </div>
 
         <div class="ring" id="ring">
@@ -147,7 +150,7 @@
 <!-- Основной скрипт -->
 <script src="script.js"></script>
 
-<!-- Регистрация Service Worker для офлайн-работы -->
+<!-- Регистрация Service Worker -->
 <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
