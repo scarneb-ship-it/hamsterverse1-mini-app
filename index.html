@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ДОМАШНИЙ ФИТНЕС — домашняя тренировка</title>
+    <title>Домашний фитнес</title>
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ff5630">
+    <meta name="theme-color" content="#FF5A1F">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,7 +17,7 @@
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- Стили -->
     <link rel="stylesheet" href="style.css">
@@ -28,39 +28,33 @@
     <!-- HEADER -->
     <header class="header">
         <div class="header__brand">
-            <!-- Логотип вместо 01 -->
-            <img class="header__logo" src="icons/icon-192.png" alt="Домашний фитнес">
+            <img class="header__logo" src="icons/icon-192.png" alt="Логотип">
             <div class="header__title">
-                <h1>ДОМАШНИЙ ФИТНЕС</h1>
+                <h1>Домашний фитнес</h1>
                 <p>3 дня · гантели + турник · дом</p>
             </div>
         </div>
         <button class="header__log-btn" id="openLogBtn" aria-label="Открыть журнал тренировок">
             <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 4h16v2H4zM4 11h10v2H4zM4 18h16v2H4z"/></svg>
-            Журнал
+            <span>Журнал</span>
         </button>
     </header>
 
     <!-- DAY TABS -->
     <nav class="tabs" id="dayTabs">
-        <button class="tab tab--warmup" data-view="warmup">
-            <span class="tab__num">W</span>
+        <button class="tab" data-view="warmup">
             <span class="tab__label">Разминка<em>5 мин</em></span>
         </button>
-        <button class="tab tab--a" data-view="A">
-            <span class="tab__num">A</span>
+        <button class="tab" data-view="A">
             <span class="tab__label">Силовая база<em>Турник + гантели</em></span>
         </button>
-        <button class="tab tab--b" data-view="B">
-            <span class="tab__num">B</span>
+        <button class="tab" data-view="B">
             <span class="tab__label">Мышечный рост<em>Гипертрофия</em></span>
         </button>
-        <button class="tab tab--c" data-view="C">
-            <span class="tab__num">C</span>
+        <button class="tab" data-view="C">
             <span class="tab__label">Жиросжигание<em>Круговая · кор</em></span>
         </button>
-        <button class="tab tab--cooldown" data-view="cooldown">
-            <span class="tab__num">Z</span>
+        <button class="tab" data-view="cooldown">
             <span class="tab__label">Заминка<em>3 мин</em></span>
         </button>
     </nav>
@@ -82,7 +76,7 @@
             <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
         </button>
         <p class="rules__body" id="rulesBody">
-            Сделали максимум повторений во всех подходах — на двух тренировках подряд? Берите гантель тяжелее на 1–2&nbsp;кг.
+            Сделали максимум повторений во всех подходах — на двух тренировках подряд? Берите гантель тяжелее на 1–2 кг.
             Гантели неразборные — увеличивайте отдых до верхней границы диапазона.
         </p>
     </footer>
@@ -93,7 +87,7 @@
 <div class="player" id="player" hidden>
     <div class="player__top">
         <button class="player__close" id="playerClose" aria-label="Закрыть тренировку">
-            <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
         </button>
         <div class="player__crumbs" id="playerCrumbs"></div>
     </div>
@@ -106,7 +100,6 @@
             <p class="player__note" id="playerNote" hidden></p>
         </div>
 
-        <!-- Изображение упражнения -->
         <div class="player__image" id="playerImageContainer" hidden>
             <img id="playerImage" src="" alt="">
         </div>
@@ -115,7 +108,7 @@
             <div class="ring__outer" id="ringOuter">
                 <div class="ring__inner">
                     <span class="ring__time" id="ringTime">00:00</span>
-                    <span class="ring__phase" id="ringPhase">РАБОТА</span>
+                    <span class="ring__phase" id="ringPhase">ГОТОВ</span>
                 </div>
             </div>
         </div>
@@ -130,7 +123,7 @@
 <!-- DONE / QUALITY CHECK MODAL -->
 <div class="modal" id="qualityModal" hidden>
     <div class="modal__card">
-        <h3>Тренировка завершена 💪</h3>
+        <h3>Тренировка завершена</h3>
         <p>Во всех подходах базовых упражнений получилось выполнить максимум повторений?</p>
         <div class="modal__row">
             <button class="btn btn--ghost" id="qualityNo">Нет, не всегда</button>
