@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
        ========================================================= */
 
     /* ---------- 1. ДАННЫЕ ПРОГРАММЫ ---------- */
-
     const WARMUP = {
         title: 'Разминка',
         subtitle: '5 минут перед каждым днём',
@@ -91,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Карта изображений (только для дня A, можно расширить)
+    // Карта изображений
     const exerciseImages = {
         'Подтягивания широким хватом': 'icons/podtiagivaniechirokim.jpg',
         'Приседания (с гантелью у груди)': 'icons/prisedansgantel.jpg',
@@ -189,9 +188,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (navigator.vibrate) navigator.vibrate(ms);
     }
 
-    /* ---------- 6. STEP GENERATION (с добавлением image) ---------- */
+    /* ---------- 6. STEP GENERATION (с изображениями) ---------- */
     function enrichStep(step, ex) {
-        // ex может быть упражнением (если есть) – добавляем картинку
         if (ex && exerciseImages[ex.name]) {
             step.image = exerciseImages[ex.name];
         }
@@ -288,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }];
     }
 
-    /* ---------- 7. SESSION ENGINE ---------- */
+    /* ---------- 7. SESSION ENGINE (с автостартом отдыха) ---------- */
     function startSession(type, steplist, startIdx = 0) {
         sessionType = type;
         steps = steplist;
@@ -296,6 +294,24 @@ document.addEventListener('DOMContentLoaded', function() {
         player.hidden = false;
         document.body.style.overflow = 'hidden';
         setupStep();
+    }
+
+    function startTimer() {
+        ticking = true;
+        intervalId = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 3 && timeLeft > 0) beep(440, 0.06);
+            if (timeLeft <= 0) {
+                clearInterval(intervalId);
+                ticking = false;
+                beep(880, 0.18);
+                haptic([120, 60, 120]);
+                markExerciseProgress(steps[stepIdx]);
+                nextStep();
+                return;
+            }
+            updateRing();
+        }, 1000);
     }
 
     function setupStep() {
@@ -314,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (step.note) { playerNote.hidden = false; playerNote.textContent = step.note; }
         else { playerNote.hidden = true; }
 
-        // 🆕 Отображение изображения
+        // Картинка упражнения
         if (step.image) {
             playerImage.src = step.image;
             playerImage.alt = step.exName;
@@ -329,10 +345,21 @@ document.addEventListener('DOMContentLoaded', function() {
             totalTime = step.duration;
             timeLeft = step.duration;
             updateRing();
-            mainActionBtn.textContent = 'Старт';
-            skipBtn.hidden = false;
+
+            if (step.kind === 'rest') {
+                // Автозапуск отдыха
+                mainActionBtn.textContent = 'Пауза';
+                skipBtn.hidden = false;
+                startTimer();
+            } else {
+                // Рабочий таймер (планка и т.п.) – ждет нажатия «Старт»
+                mainActionBtn.textContent = 'Старт';
+                skipBtn.hidden = false;
+            }
         } else {
-            totalTime = 0; timeLeft = 0;
+            // Упражнение без таймера (свои повторения)
+            totalTime = 0;
+            timeLeft = 0;
             ringTime.textContent = '✓';
             ringOuter.style.setProperty('--progress', '360deg');
             mainActionBtn.textContent = 'Готово';
@@ -357,32 +384,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleTimer() {
         const step = steps[stepIdx];
         if (!step.duration) {
+            // Шаг без таймера (нажатие «Готово»)
             markExerciseProgress(step);
             beep(660, 0.08);
             nextStep();
             return;
         }
+
         if (ticking) {
+            // Пауза
             clearInterval(intervalId);
             ticking = false;
             mainActionBtn.textContent = 'Продолжить';
         } else {
-            ticking = true;
+            // Запуск (или продолжение)
             mainActionBtn.textContent = 'Пауза';
-            intervalId = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 3 && timeLeft > 0) beep(440, 0.06);
-                if (timeLeft <= 0) {
-                    clearInterval(intervalId);
-                    ticking = false;
-                    beep(880, 0.18);
-                    haptic([120, 60, 120]);
-                    markExerciseProgress(step);
-                    nextStep();
-                    return;
-                }
-                updateRing();
-            }, 1000);
+            startTimer();
         }
     }
 
