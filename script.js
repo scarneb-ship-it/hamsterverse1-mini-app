@@ -79,7 +79,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
-    const AI_MODEL = 'nvidia/nemotron-3-8b-chat-4k-rlhf'; // бесплатная модель NVIDIA Nemotron 3
+    // Исправленная модель (бесплатная и рабочая)
+    const AI_MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
+
+    const DEFAULT_API_KEY = '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';
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
     function saveLogEntry(dayKey, quality) {
@@ -98,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
 
     function getApiKey() {
-        return localStorage.getItem(AI_KEY_STORAGE) || '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';
+        return localStorage.getItem(AI_KEY_STORAGE) || DEFAULT_API_KEY;
     }
     function setApiKey(key) {
         localStorage.setItem(AI_KEY_STORAGE, key);
@@ -258,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json'
-                    // Убраны заголовки X-Title и HTTP-Referer, так как они могут содержать недопустимые символы
                 },
                 body: JSON.stringify({
                     model: AI_MODEL,
