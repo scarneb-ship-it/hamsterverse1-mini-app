@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
+    const TTS_MODEL = 'deepgram/flux-tts:free';
     const DEFAULT_API_KEY = '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';
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
@@ -152,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeAiBtn = $('#closeAiBtn');
     const openaiKeyInput = $('#openaiKey');
     const voiceInputBtn = $('#voiceInputBtn');
+    const voiceSelect = $('#voiceSelect'); // если добавлен в HTML
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -165,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ========== VOICE ========== */
     let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
     const synth = window.speechSynthesis;
-    // Принудительно запрашиваем голоса (для корректной работы выбора женского голоса)
     synth.getVoices();
     if (synth.onvoiceschanged !== undefined) {
         synth.onvoiceschanged = () => { /* голоса обновятся автоматически */ };
@@ -204,6 +205,31 @@ document.addEventListener('DOMContentLoaded', function() {
     themeSelect.value = localStorage.getItem('theme') || 'system';
     applyTheme(themeSelect.value);
     openaiKeyInput.value = getApiKey();
+
+    // Заполнение списка голосов (если есть voiceSelect)
+    function populateVoiceList() {
+        if (!voiceSelect) return;
+        const voices = synth.getVoices();
+        const ruVoices = voices.filter(v => v.lang.toLowerCase().startsWith('ru'));
+        while (voiceSelect.options.length > 1) voiceSelect.remove(1);
+        ruVoices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.name;
+            option.textContent = `${voice.name} (${voice.lang})`;
+            voiceSelect.appendChild(option);
+        });
+        const savedVoice = localStorage.getItem('selectedVoice');
+        if (savedVoice) voiceSelect.value = savedVoice;
+    }
+    populateVoiceList();
+    if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = populateVoiceList;
+    }
+    if (voiceSelect) {
+        voiceSelect.addEventListener('change', () => {
+            localStorage.setItem('selectedVoice', voiceSelect.value);
+        });
+    }
 
     /* ========== AI TRAINER LOGIC ========== */
     let aiHistory = getAiHistory();
@@ -270,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     const botReply = data.choices[0].message.content.trim();
                     addMessage('assistant', botReply);
-                    speakAI(botReply); // Озвучиваем ответ женским голосом
+                    speakAIWithTTS(botReply); // <-- используем новую TTS
                 } else {
                     addMessage('assistant', 'Неожиданный формат ответа от API.');
                 }
@@ -285,33 +311,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Функция озвучивания текста женским голосом
-    function speakAI(text) {
+    // Функция озвучивания ответа ИИ через TTS OpenRouter
+    async function speakAIWithTTS(text) {
         if (!voiceEnabled) return;
-        if (synth.speaking) synth.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'ru-RU';
-        utter.rate = 1.0;
-        utter.pitch = 1.1; // Немного выше для женского тембра
+        const apiKey = getApiKey();
+        if (!apiKey) return;
 
-        // Выбор женского голоса
-        const voices = synth.getVoices();
-        let femaleVoice = null;
-        // Ищем русский женский голос
-        femaleVoice = voices.find(v => 
-            v.lang.toLowerCase().startsWith('ru') && 
-            (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('жен'))
-        );
-        // Если не нашли — любой русский голос
-        if (!femaleVoice) {
-            femaleVoice = voices.find(v => v.lang.toLowerCase().startsWith('ru'));
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: TTS_MODEL,
+                    input: text,
+                    voice: 'nova' // можно попробовать 'shimmer', 'female' и др.
+                })
+            });
+
+            if (!response.ok) {
+                console.error('TTS API error:', response.status);
+                throw new Error('TTS failed');
+            }
+
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        } catch (error) {
+            console.error('TTS error, falling back to Web Speech:', error);
+            // Fallback на Web Speech API
+            if (synth.speaking) synth.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'ru-RU';
+            utter.rate = 1.0;
+            utter.pitch = 1.1;
+            const voices = synth.getVoices();
+            const ruVoice = voices.find(v => v.lang.startsWith('ru')) || voices[0];
+            if (ruVoice) utter.voice = ruVoice;
+            synth.speak(utter);
         }
-        // Если русских нет — любой голос, но язык остаётся русским
-        if (!femaleVoice) {
-            femaleVoice = voices.find(v => v.lang.toLowerCase().startsWith('ru-RU')) || voices[0];
-        }
-        if (femaleVoice) utter.voice = femaleVoice;
-        synth.speak(utter);
     }
 
     /* ========== SPEECH RECOGNITION ========== */
@@ -326,7 +367,6 @@ document.addEventListener('DOMContentLoaded', function() {
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             aiInput.value = transcript;
-            // Автоматически отправляем сообщение
             aiForm.dispatchEvent(new Event('submit'));
         };
 
@@ -492,7 +532,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ring.classList.remove('is-rest','is-go','pulse');
         ring.classList.add(step.kind==='rest'?'is-rest':'is-go');
         playerCrumbs.textContent = `${sessionTitle()} · ${stepIdx+1}/${steps.length}`;
-        // playerNum не используется
         playerName.textContent = step.exName;
         playerMeta.textContent = step.setLabel+(step.repsLabel?` · ${step.repsLabel}`:'');
         if (step.note) { playerNote.hidden=false; playerNote.textContent=step.note; }
