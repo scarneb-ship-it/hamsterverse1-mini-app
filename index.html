@@ -86,8 +86,6 @@
         </div>
         <form class="ai-card__input" id="aiForm">
             <input type="text" id="aiInput" placeholder="Напишите сообщение..." autocomplete="off">
-            <!-- Кнопка голосового ввода -->
-            <button type="button" class="btn btn--ghost ai-voice-btn" id="aiVoiceBtn" aria-label="Голосовой ввод" title="Голосовой ввод">🎤</button>
             <button type="submit" class="btn btn--primary">Отправить</button>
         </form>
     </div>
@@ -138,6 +136,11 @@
     <div class="modal__card">
         <h3>Тренировка завершена</h3>
         <p>Во всех подходах базовых упражнений получилось выполнить максимум повторений?</p>
+        <!-- НОВОЕ: ввод веса -->
+        <div class="weight-input">
+            <label for="workoutWeight">Вес гантелей (кг):</label>
+            <input type="number" id="workoutWeight" min="0" step="0.5" placeholder="Напр. 10" style="width:100%; margin-bottom:12px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 14px; font-size:14px;">
+        </div>
         <div class="modal__row">
             <button class="btn btn--ghost" id="qualityNo">Нет, не всегда</button>
             <button class="btn btn--primary" id="qualityYes">Да, максимум!</button>
@@ -168,11 +171,6 @@
             <div class="setting-item">
                 <span>API ключ OpenRouter</span>
                 <input type="password" id="openaiKey" placeholder="sk-or-v1-..." style="width: 180px; background: var(--border); color: var(--text); border: 1px solid var(--text-secondary); border-radius: 8px; padding: 8px 12px; font-size: 14px;">
-            </div>
-            <!-- Новое поле для ключа Fish Audio -->
-            <div class="setting-item">
-                <span>API ключ Fish Audio</span>
-                <input type="password" id="fishAudioKey" placeholder="Введите ключ..." style="width: 180px; background: var(--border); color: var(--text); border: 1px solid var(--text-secondary); border-radius: 8px; padding: 8px 12px; font-size: 14px;">
             </div>
         </div>
         <button class="btn btn--primary" id="closeSettingsBtn" style="margin-top: 20px; width: 100%;">Закрыть</button>
