@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
     // Исправленная модель (бесплатная и рабочая)
-    const AI_MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
+    const AI_MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
 
     const DEFAULT_API_KEY = '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';
 
