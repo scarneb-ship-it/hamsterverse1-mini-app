@@ -79,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
-    // Только одна модель
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
     const DEFAULT_API_KEY = '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';
 
@@ -152,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const aiInput = $('#aiInput');
     const closeAiBtn = $('#closeAiBtn');
     const openaiKeyInput = $('#openaiKey');
+    const voiceInputBtn = $('#voiceInputBtn');
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -165,6 +165,12 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ========== VOICE ========== */
     let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
     const synth = window.speechSynthesis;
+    // Принудительно запрашиваем голоса (для корректной работы выбора женского голоса)
+    synth.getVoices();
+    if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = () => { /* голоса обновятся автоматически */ };
+    }
+
     function speak(text, priority = false) {
         if (!voiceEnabled) return;
         if (synth.speaking && !priority) return;
@@ -238,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
         Пользователь занимается дома с гантелями и турником. 
         Отвечай на русском языке.`;
 
-        // Используем только одну модель
         const model = FREE_MODELS[0];
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -265,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     const botReply = data.choices[0].message.content.trim();
                     addMessage('assistant', botReply);
+                    speakAI(botReply); // Озвучиваем ответ женским голосом
                 } else {
                     addMessage('assistant', 'Неожиданный формат ответа от API.');
                 }
@@ -277,6 +283,66 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Network error:', error);
             addMessage('assistant', `Ошибка сети: ${error.message}. Проверьте подключение и CORS.`);
         }
+    }
+
+    // Функция озвучивания текста женским голосом
+    function speakAI(text) {
+        if (!voiceEnabled) return;
+        if (synth.speaking) synth.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ru-RU';
+        utter.rate = 1.0;
+        utter.pitch = 1.1; // Немного выше для женского тембра
+
+        // Выбор женского голоса
+        const voices = synth.getVoices();
+        let femaleVoice = null;
+        // Ищем русский женский голос
+        femaleVoice = voices.find(v => 
+            v.lang.toLowerCase().startsWith('ru') && 
+            (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('жен'))
+        );
+        // Если не нашли — любой русский голос
+        if (!femaleVoice) {
+            femaleVoice = voices.find(v => v.lang.toLowerCase().startsWith('ru'));
+        }
+        // Если русских нет — любой голос, но язык остаётся русским
+        if (!femaleVoice) {
+            femaleVoice = voices.find(v => v.lang.toLowerCase().startsWith('ru-RU')) || voices[0];
+        }
+        if (femaleVoice) utter.voice = femaleVoice;
+        synth.speak(utter);
+    }
+
+    /* ========== SPEECH RECOGNITION ========== */
+    let recognition = null;
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ru-RU';
+        recognition.interimResults = false;
+        recognition.continuous = false;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            aiInput.value = transcript;
+            // Автоматически отправляем сообщение
+            aiForm.dispatchEvent(new Event('submit'));
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Ошибка распознавания речи:', event.error);
+            voiceInputBtn.classList.remove('is-active');
+            if (event.error === 'not-allowed') {
+                addMessage('assistant', 'Разрешите доступ к микрофону в настройках браузера.');
+            }
+        };
+
+        recognition.onend = () => {
+            voiceInputBtn.classList.remove('is-active');
+        };
+    } else {
+        if (voiceInputBtn) voiceInputBtn.style.display = 'none';
     }
 
     // Обработчики ИИ
@@ -293,6 +359,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!text) return;
         aiInput.value = '';
         sendToAI(text);
+    });
+    voiceInputBtn.addEventListener('click', () => {
+        if (!recognition) return;
+        if (voiceInputBtn.classList.contains('is-active')) {
+            recognition.stop();
+        } else {
+            try {
+                recognition.start();
+                voiceInputBtn.classList.add('is-active');
+            } catch (e) {
+                console.error('Ошибка запуска распознавания:', e);
+            }
+        }
     });
     openaiKeyInput.addEventListener('change', () => setApiKey(openaiKeyInput.value));
 
