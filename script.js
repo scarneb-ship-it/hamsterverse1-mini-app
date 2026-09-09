@@ -120,12 +120,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const restAdjust = $('#restAdjust');
     const restMinus = $('#restMinus');
     const restPlus = $('#restPlus');
-
     const settingsBtn = $('#settingsBtn');
     const settingsModal = $('#settingsModal');
     const themeSelect = $('#themeSelect');
     const voiceToggleCheckbox = $('#voiceToggle');
     const closeSettingsBtn = $('#closeSettingsBtn');
+
+    /* Новые элементы для следующего упражнения */
+    const nextExerciseBlock = $('#nextExercise');
+    const nextExerciseName = $('#nextExerciseName');
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -305,7 +308,8 @@ document.addEventListener('DOMContentLoaded', function() {
         ring.classList.remove('is-rest','is-go','pulse');
         ring.classList.add(step.kind==='rest'?'is-rest':'is-go');
         playerCrumbs.textContent = `${sessionTitle()} · ${stepIdx+1}/${steps.length}`;
-        playerNum.textContent = step.exNum||'—';
+        // Номер упражнения больше не используется, скрыт через CSS
+        // playerNum.textContent = step.exNum || '—';
         playerName.textContent = step.exName;
         playerMeta.textContent = step.setLabel+(step.repsLabel?` · ${step.repsLabel}`:'');
         if (step.note) { playerNote.hidden=false; playerNote.textContent=step.note; }
@@ -315,6 +319,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
         ringPhase.textContent = step.kind==='rest'?'ОТДЫХ':(step.duration?'РАБОТА':'ГОТОВ');
         announceStep(step);
+
+        // Показ следующего упражнения во время отдыха
+        if (step.kind === 'rest') {
+            // Ищем следующий шаг с kind === 'work'
+            let nextWorkStep = null;
+            for (let i = stepIdx + 1; i < steps.length; i++) {
+                if (steps[i].kind === 'work') {
+                    nextWorkStep = steps[i];
+                    break;
+                }
+            }
+            if (nextWorkStep) {
+                nextExerciseBlock.hidden = false;
+                nextExerciseName.textContent = nextWorkStep.exName;
+            } else {
+                nextExerciseBlock.hidden = true;
+            }
+        } else {
+            nextExerciseBlock.hidden = true;
+        }
 
         if (step.duration) {
             totalTime=step.duration; timeLeft=step.duration;
@@ -420,7 +444,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const done = sessionDone[dayKey].has(exIdx);
         const repsText = ex.mode==='time'?(ex.durationLabel||`${ex.duration} сек`):ex.repsLabel;
         const imgSrc = exerciseImages[ex.name];
-        const plateContent = imgSrc?`<img src="${imgSrc}" alt="${ex.name}" class="plate">`:`<div class="plate">${ex.num}</div>`;
+        // Больше не выводим номер упражнения, только изображение (если есть)
+        const plateContent = imgSrc ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">` : ``;
         return `<div class="card ${done?'is-done':''}" data-day="${dayKey}" data-ex="${exIdx}" style="animation-delay:${exIdx*0.04}s">
             ${plateContent}
             <div class="card__body">
@@ -437,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (day.circuit) {
             const rows = day.exercises.map(ex=>{
                 const imgSrc = exerciseImages[ex.name];
-                const plateContent = imgSrc?`<img src="${imgSrc}" alt="${ex.name}" class="plate">`:`<div class="plate">${ex.num}</div>`;
+                const plateContent = imgSrc ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">` : ``;
                 return `<div class="circuit-item">${plateContent}<div class="card__body"><p class="card__name">${ex.name}</p><div class="card__stats"><span>${ex.mode==='time'?ex.duration+' сек':ex.repsLabel}</span></div></div></div>`;
             }).join('');
             mainContent.innerHTML = `<div class="section-head"><div><h2>${day.title}</h2><p>${day.subtitle}</p></div></div>
