@@ -78,9 +78,14 @@
     </div>
     <div class="player__body">
         <div class="player__exercise">
+            <!-- Номер упражнения скрыт через CSS -->
             <span class="player__badge" id="playerNum">—</span>
             <h2 id="playerName">Упражнение</h2>
             <p class="player__meta" id="playerMeta">Подход 1 / 4</p>
+            <div class="player__next" id="nextExercise" hidden>
+                <span>Следующее:</span>
+                <strong id="nextExerciseName"></strong>
+            </div>
             <p class="player__note" id="playerNote" hidden></p>
         </div>
         <div class="player__image" id="playerImageContainer" hidden>
