@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
+    // Только одна модель
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
     const DEFAULT_API_KEY = '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';
 
@@ -103,11 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     function setApiKey(key) {
         localStorage.setItem(AI_KEY_STORAGE, key);
-    }
-    function resetApiKey() {
-        localStorage.removeItem(AI_KEY_STORAGE);
-        openaiKeyInput.value = DEFAULT_API_KEY;
-        setApiKey(DEFAULT_API_KEY);
     }
     function getAiHistory() {
         try { return JSON.parse(localStorage.getItem(AI_HISTORY_STORAGE)) || []; } catch(e) { return []; }
@@ -148,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeSelect = $('#themeSelect');
     const voiceToggleCheckbox = $('#voiceToggle');
     const closeSettingsBtn = $('#closeSettingsBtn');
-    const resetApiKeyBtn = $('#resetApiKeyBtn'); // новая кнопка
 
     const aiTrainerBtn = $('#aiTrainerBtn');
     const aiModal = $('#aiModal');
@@ -243,6 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Пользователь занимается дома с гантелями и турником. 
         Отвечай на русском языке.`;
 
+        // Используем только одну модель
         const model = FREE_MODELS[0];
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -299,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function() {
         sendToAI(text);
     });
     openaiKeyInput.addEventListener('change', () => setApiKey(openaiKeyInput.value));
-    resetApiKeyBtn.addEventListener('click', resetApiKey);
 
     /* ========== STATE ========== */
     let currentView = 'A';
