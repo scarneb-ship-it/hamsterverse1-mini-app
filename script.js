@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
-    const TTS_MODEL = 'deepgram/flux-tts:free';
+    const TTS_MODEL = 'fish-audio/s2.1-pro-free:free';  // <-- Модель TTS
     const DEFAULT_API_KEY = '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';
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     const botReply = data.choices[0].message.content.trim();
                     addMessage('assistant', botReply);
-                    speakAIWithTTS(botReply); // <-- используем новую TTS
+                    speakAIWithTTS(botReply); // <-- используем TTS
                 } else {
                     addMessage('assistant', 'Неожиданный формат ответа от API.');
                 }
@@ -311,12 +311,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Функция озвучивания ответа ИИ через TTS OpenRouter
+    // Функция озвучивания ответа ИИ через TTS OpenRouter (fish-audio)
     async function speakAIWithTTS(text) {
         if (!voiceEnabled) return;
         const apiKey = getApiKey();
-        if (!apiKey) return;
+        if (!apiKey) {
+            console.log('TTS: нет API ключа');
+            return;
+        }
 
+        console.log('TTS: начинаю запрос к OpenRouter');
         try {
             const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
                 method: 'POST',
@@ -326,20 +330,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     model: TTS_MODEL,
-                    input: text,
-                    voice: 'nova' // можно попробовать 'shimmer', 'female' и др.
+                    input: text
+                    // voice не указан – модель сама выберет подходящий голос
                 })
             });
 
+            console.log('TTS: статус ответа', response.status);
+
             if (!response.ok) {
-                console.error('TTS API error:', response.status);
+                console.error('TTS API error:', response.status, await response.text());
                 throw new Error('TTS failed');
             }
 
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            audio.play();
+            const contentType = response.headers.get('content-type');
+            console.log('TTS: content-type', contentType);
+
+            if (contentType && contentType.includes('audio')) {
+                // Это аудио-файл
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+                console.log('TTS: воспроизвожу аудио');
+            } else {
+                // Может быть JSON с URL
+                const data = await response.json();
+                console.log('TTS: JSON ответ', data);
+                if (data.url) {
+                    const audio = new Audio(data.url);
+                    audio.play();
+                } else if (data.audio) {
+                    // Если это base64
+                    const audioUrl = `data:audio/mpeg;base64,${data.audio}`;
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                } else {
+                    console.error('TTS: неожиданный формат ответа');
+                    throw new Error('Unexpected TTS response');
+                }
+            }
         } catch (error) {
             console.error('TTS error, falling back to Web Speech:', error);
             // Fallback на Web Speech API
