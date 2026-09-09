@@ -97,6 +97,19 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.01em; margin: 0; }
     display: flex; align-items: center; justify-content: center;
     margin-left: 8px;
 }
+/* Кнопка ИИ-тренера */
+.header__ai-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 44px; height: 44px;
+    color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    margin-left: 8px;
+}
+.header__ai-btn:active {
+    background: var(--border);
+}
 
 /* ============ TABS (горизонтальная прокрутка) ============ */
 .tabs-container {
@@ -314,6 +327,14 @@ img.plate { background: none; object-fit: cover; padding: 0; font-size: 0; }
     padding: 8px 12px;
     font-size: 14px;
 }
+.setting-item input[type="password"] {
+    background: var(--border);
+    color: var(--text);
+    border: 1px solid var(--text-secondary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
 
 /* Toggle switch */
 .toggle { position: relative; display: inline-block; width: 48px; height: 26px; }
@@ -339,6 +360,101 @@ img.plate { background: none; object-fit: cover; padding: 0; font-size: 0; }
 .toggle input:checked + .toggle__slider:before {
     transform: translateX(22px);
     background-color: #fff;
+}
+
+/* ============ AI TRAINER (ЧАТ) ============ */
+.ai-card {
+    max-width: 420px;
+    width: 100%;
+    text-align: left;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    max-height: 600px;
+}
+
+.ai-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.ai-card__header h3 {
+    font-size: 18px;
+    margin: 0;
+}
+
+.modal__close {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0 8px;
+}
+
+.ai-card__messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ai-message {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.ai-message--user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.ai-message--bot {
+    align-self: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+}
+
+.ai-card__input {
+    display: flex;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.ai-card__input input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--text);
+    margin-right: 8px;
+}
+
+.ai-card__input input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.ai-card__input button {
+    min-width: 100px;
 }
 
 /* ============ LOG DRAWER ============ */
