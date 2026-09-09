@@ -79,8 +79,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
+    const FISH_AUDIO_KEY_STORAGE = 'fish_audio_api_key';
+    // Только одна модель
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
-    const TTS_MODEL = 'fish-audio/s2.1-pro-free:free';  // Модель TTS
     const DEFAULT_API_KEY = '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';
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
@@ -110,6 +111,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     function saveAiHistory(history) {
         localStorage.setItem(AI_HISTORY_STORAGE, JSON.stringify(history));
+    }
+    function getFishAudioKey() {
+        return localStorage.getItem(FISH_AUDIO_KEY_STORAGE) || '';
+    }
+    function setFishAudioKey(key) {
+        localStorage.setItem(FISH_AUDIO_KEY_STORAGE, key);
     }
 
     /* ========== DOM ========== */
@@ -150,10 +157,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const aiMessages = $('#aiMessages');
     const aiForm = $('#aiForm');
     const aiInput = $('#aiInput');
+    const aiVoiceBtn = $('#aiVoiceBtn');
     const closeAiBtn = $('#closeAiBtn');
     const openaiKeyInput = $('#openaiKey');
-    const voiceInputBtn = $('#voiceInputBtn');
-    const voiceSelect = $('#voiceSelect'); // если добавлен в HTML
+    const fishAudioKeyInput = $('#fishAudioKey');
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -167,11 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ========== VOICE ========== */
     let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
     const synth = window.speechSynthesis;
-    synth.getVoices();
-    if (synth.onvoiceschanged !== undefined) {
-        synth.onvoiceschanged = () => { /* голоса обновятся автоматически */ };
-    }
-
     function speak(text, priority = false) {
         if (!voiceEnabled) return;
         if (synth.speaking && !priority) return;
@@ -205,31 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
     themeSelect.value = localStorage.getItem('theme') || 'system';
     applyTheme(themeSelect.value);
     openaiKeyInput.value = getApiKey();
-
-    // Заполнение списка голосов (если есть voiceSelect)
-    function populateVoiceList() {
-        if (!voiceSelect) return;
-        const voices = synth.getVoices();
-        const ruVoices = voices.filter(v => v.lang.toLowerCase().startsWith('ru'));
-        while (voiceSelect.options.length > 1) voiceSelect.remove(1);
-        ruVoices.forEach(voice => {
-            const option = document.createElement('option');
-            option.value = voice.name;
-            option.textContent = `${voice.name} (${voice.lang})`;
-            voiceSelect.appendChild(option);
-        });
-        const savedVoice = localStorage.getItem('selectedVoice');
-        if (savedVoice) voiceSelect.value = savedVoice;
-    }
-    populateVoiceList();
-    if (synth.onvoiceschanged !== undefined) {
-        synth.onvoiceschanged = populateVoiceList;
-    }
-    if (voiceSelect) {
-        voiceSelect.addEventListener('change', () => {
-            localStorage.setItem('selectedVoice', voiceSelect.value);
-        });
-    }
+    fishAudioKeyInput.value = getFishAudioKey();
 
     /* ========== AI TRAINER LOGIC ========== */
     let aiHistory = getAiHistory();
@@ -255,6 +233,37 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessageToDOM(role, content);
     }
 
+    // Функция синтеза речи через Fish Audio
+    async function synthesizeSpeech(text) {
+        const apiKey = getFishAudioKey();
+        if (!apiKey) return;
+        try {
+            const response = await fetch('https://api.fish.audio/v1/tts', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: text,
+                    voice_id: 's2.1-pro-free',
+                    format: 'mp3'
+                })
+            });
+            if (!response.ok) {
+                console.error('Fish Audio error:', response.status);
+                return;
+            }
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+            audio.onended = () => URL.revokeObjectURL(audioUrl);
+        } catch (error) {
+            console.error('Fish Audio synthesis error:', error);
+        }
+    }
+
     async function sendToAI(userMessage) {
         const apiKey = getApiKey();
         if (!apiKey) {
@@ -270,6 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Пользователь занимается дома с гантелями и турником. 
         Отвечай на русском языке.`;
 
+        // Используем только одну модель
         const model = FREE_MODELS[0];
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -296,7 +306,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     const botReply = data.choices[0].message.content.trim();
                     addMessage('assistant', botReply);
-                    speakAIWithTTS(botReply); // <-- используем TTS с fallback
+                    // Озвучка ответа
+                    synthesizeSpeech(botReply);
                 } else {
                     addMessage('assistant', 'Неожиданный формат ответа от API.');
                 }
@@ -311,121 +322,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Функция озвучивания ответа ИИ: сначала TTS, при неудаче — Web Speech
-    async function speakAIWithTTS(text) {
-        if (!voiceEnabled) return;
-        const apiKey = getApiKey();
-        if (!apiKey) {
-            speakWithWebSpeech(text);
-            return;
-        }
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 сек таймаут
-
-            const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: TTS_MODEL,
-                    input: text
-                    // voice не указан – модель сама выберет подходящий голос
-                }),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                console.error('TTS API error:', response.status, await response.text());
-                speakWithWebSpeech(text);
-                return;
-            }
-
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('audio')) {
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = new Audio(audioUrl);
-                audio.play().catch(err => {
-                    console.error('Audio play failed:', err);
-                    speakWithWebSpeech(text);
-                });
-            } else {
-                const data = await response.json();
-                if (data.url) {
-                    const audio = new Audio(data.url);
-                    audio.play().catch(err => {
-                        console.error('Audio play failed:', err);
-                        speakWithWebSpeech(text);
-                    });
-                } else if (data.audio) {
-                    const audioUrl = `data:audio/mpeg;base64,${data.audio}`;
-                    const audio = new Audio(audioUrl);
-                    audio.play().catch(err => {
-                        console.error('Audio play failed:', err);
-                        speakWithWebSpeech(text);
-                    });
-                } else {
-                    console.error('TTS: неожиданный формат ответа');
-                    speakWithWebSpeech(text);
-                }
-            }
-        } catch (error) {
-            console.error('TTS error, falling back to Web Speech:', error);
-            speakWithWebSpeech(text);
-        }
-    }
-
-    // Вспомогательная функция для озвучивания через Web Speech API
-    function speakWithWebSpeech(text) {
-        if (!voiceEnabled) return;
-        if (synth.speaking) synth.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'ru-RU';
-        utter.rate = 1.0;
-        utter.pitch = 1.1;
-        // Попытка выбрать женский русский голос
-        const voices = synth.getVoices();
-        let ruVoice = voices.find(v => v.lang.toLowerCase().startsWith('ru') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('жен')));
-        if (!ruVoice) ruVoice = voices.find(v => v.lang.toLowerCase().startsWith('ru'));
-        if (!ruVoice) ruVoice = voices[0];
-        if (ruVoice) utter.voice = ruVoice;
-        synth.speak(utter);
-    }
-
-    /* ========== SPEECH RECOGNITION ========== */
+    // Инициализация распознавания речи
     let recognition = null;
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
         recognition.lang = 'ru-RU';
         recognition.interimResults = false;
-        recognition.continuous = false;
-
+        recognition.maxAlternatives = 1;
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             aiInput.value = transcript;
             aiForm.dispatchEvent(new Event('submit'));
         };
-
         recognition.onerror = (event) => {
-            console.error('Ошибка распознавания речи:', event.error);
-            voiceInputBtn.classList.remove('is-active');
-            if (event.error === 'not-allowed') {
-                addMessage('assistant', 'Разрешите доступ к микрофону в настройках браузера.');
-            }
+            console.error('Speech recognition error', event.error);
+            aiVoiceBtn.classList.remove('listening');
         };
-
         recognition.onend = () => {
-            voiceInputBtn.classList.remove('is-active');
+            aiVoiceBtn.classList.remove('listening');
         };
-    } else {
-        if (voiceInputBtn) voiceInputBtn.style.display = 'none';
     }
 
     // Обработчики ИИ
@@ -443,20 +359,21 @@ document.addEventListener('DOMContentLoaded', function() {
         aiInput.value = '';
         sendToAI(text);
     });
-    voiceInputBtn.addEventListener('click', () => {
-        if (!recognition) return;
-        if (voiceInputBtn.classList.contains('is-active')) {
+    aiVoiceBtn.addEventListener('click', () => {
+        if (!recognition) {
+            alert('Распознавание речи не поддерживается в вашем браузере.');
+            return;
+        }
+        if (aiVoiceBtn.classList.contains('listening')) {
             recognition.stop();
+            aiVoiceBtn.classList.remove('listening');
         } else {
-            try {
-                recognition.start();
-                voiceInputBtn.classList.add('is-active');
-            } catch (e) {
-                console.error('Ошибка запуска распознавания:', e);
-            }
+            recognition.start();
+            aiVoiceBtn.classList.add('listening');
         }
     });
     openaiKeyInput.addEventListener('change', () => setApiKey(openaiKeyInput.value));
+    fishAudioKeyInput.addEventListener('change', () => setFishAudioKey(fishAudioKeyInput.value));
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -575,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ring.classList.remove('is-rest','is-go','pulse');
         ring.classList.add(step.kind==='rest'?'is-rest':'is-go');
         playerCrumbs.textContent = `${sessionTitle()} · ${stepIdx+1}/${steps.length}`;
+        // playerNum не используется
         playerName.textContent = step.exName;
         playerMeta.textContent = step.setLabel+(step.repsLabel?` · ${step.repsLabel}`:'');
         if (step.note) { playerNote.hidden=false; playerNote.textContent=step.note; }
