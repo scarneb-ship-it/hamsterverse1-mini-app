@@ -79,9 +79,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
-    // Исправленная модель (бесплатная и рабочая)
-    const AI_MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
-
+    // Только одна модель
+    const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
     const DEFAULT_API_KEY = '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';
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
@@ -146,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const voiceToggleCheckbox = $('#voiceToggle');
     const closeSettingsBtn = $('#closeSettingsBtn');
 
-    // Элементы ИИ-тренера
     const aiTrainerBtn = $('#aiTrainerBtn');
     const aiModal = $('#aiModal');
     const aiMessages = $('#aiMessages');
@@ -157,27 +155,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
-        if (mode === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-        } else if (mode === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-        }
+        if (mode === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else if (mode === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-        if (metaThemeColor) {
-            if (mode === 'light') {
-                metaThemeColor.setAttribute('content', '#FFFFFF');
-            } else {
-                metaThemeColor.setAttribute('content', '#FF5A1F');
-            }
-        }
+        if (metaThemeColor) metaThemeColor.setAttribute('content', mode === 'light' ? '#FFFFFF' : '#FF5A1F');
     }
 
     /* ========== VOICE ========== */
     let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
     const synth = window.speechSynthesis;
-
     function speak(text, priority = false) {
         if (!voiceEnabled) return;
         if (synth.speaking && !priority) return;
@@ -189,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function() {
         utter.volume = 1.0;
         synth.speak(utter);
     }
-
     function announceStep(step) {
         if (!voiceEnabled) return;
         let message = '';
@@ -202,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         speak(message);
     }
-
     function announceCountdown(seconds) {
         if (!voiceEnabled || seconds > 5 || seconds < 1) return;
         speak(String(seconds), true);
@@ -224,7 +209,6 @@ document.addEventListener('DOMContentLoaded', function() {
             aiHistory.forEach(msg => addMessageToDOM(msg.role, msg.content));
         }
     }
-
     function addMessageToDOM(role, content) {
         const div = document.createElement('div');
         div.classList.add('ai-message');
@@ -233,7 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
         aiMessages.appendChild(div);
         aiMessages.scrollTop = aiMessages.scrollHeight;
     }
-
     function addMessage(role, content) {
         aiHistory.push({ role, content });
         saveAiHistory(aiHistory);
@@ -255,6 +238,8 @@ document.addEventListener('DOMContentLoaded', function() {
         Пользователь занимается дома с гантелями и турником. 
         Отвечай на русском языке.`;
 
+        // Используем только одну модель
+        const model = FREE_MODELS[0];
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
@@ -263,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: AI_MODEL,
+                    model: model,
                     messages: [
                         { role: 'system', content: systemPrompt },
                         ...aiHistory
@@ -276,18 +261,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const status = response.status;
             const data = await response.json();
 
-            if (!response.ok) {
+            if (response.ok) {
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const botReply = data.choices[0].message.content.trim();
+                    addMessage('assistant', botReply);
+                } else {
+                    addMessage('assistant', 'Неожиданный формат ответа от API.');
+                }
+            } else {
                 const errorMsg = data.error?.message || data.error || `HTTP ${status}`;
                 console.error('OpenRouter error:', data);
                 addMessage('assistant', `Ошибка API: ${errorMsg}`);
-                return;
-            }
-
-            if (data.choices && data.choices[0] && data.choices[0].message) {
-                const botReply = data.choices[0].message.content.trim();
-                addMessage('assistant', botReply);
-            } else {
-                addMessage('assistant', 'Неожиданный формат ответа от API.');
             }
         } catch (error) {
             console.error('Network error:', error);
@@ -301,17 +285,8 @@ document.addEventListener('DOMContentLoaded', function() {
         renderAiHistory();
         aiInput.focus();
     });
-
-    closeAiBtn.addEventListener('click', () => {
-        aiModal.hidden = true;
-    });
-
-    aiModal.addEventListener('click', (e) => {
-        if (e.target === aiModal) {
-            aiModal.hidden = true;
-        }
-    });
-
+    closeAiBtn.addEventListener('click', () => aiModal.hidden = true);
+    aiModal.addEventListener('click', (e) => { if (e.target === aiModal) aiModal.hidden = true; });
     aiForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = aiInput.value.trim();
@@ -319,10 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
         aiInput.value = '';
         sendToAI(text);
     });
-
-    openaiKeyInput.addEventListener('change', () => {
-        setApiKey(openaiKeyInput.value);
-    });
+    openaiKeyInput.addEventListener('change', () => setApiKey(openaiKeyInput.value));
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -347,7 +319,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== STEP GENERATION ========== */
     function enrichStep(step, ex) { if (ex && exerciseImages[ex.name]) step.image = exerciseImages[ex.name]; return step; }
-
     function makeWorkStep(ex, exIdx, totalEx, setNum, totalSets, side) {
         return {
             kind:'work', exNum:ex.num, exName:ex.name, exIdx, totalEx,
@@ -416,7 +387,6 @@ document.addEventListener('DOMContentLoaded', function() {
         speak(`Начинаем ${sessionTitle()}`);
         setupStep();
     }
-
     function startTimer() {
         ticking=true;
         intervalId=setInterval(()=>{
@@ -435,7 +405,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateRing();
         },1000);
     }
-
     function setupStep() {
         clearInterval(intervalId); ticking=false;
         const step = steps[stepIdx];
@@ -444,8 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ring.classList.remove('is-rest','is-go','pulse');
         ring.classList.add(step.kind==='rest'?'is-rest':'is-go');
         playerCrumbs.textContent = `${sessionTitle()} · ${stepIdx+1}/${steps.length}`;
-        // Номер упражнения скрыт через CSS, playerNum не используется
-        // playerNum.textContent = step.exNum || '—';
+        // playerNum не используется
         playerName.textContent = step.exName;
         playerMeta.textContent = step.setLabel+(step.repsLabel?` · ${step.repsLabel}`:'');
         if (step.note) { playerNote.hidden=false; playerNote.textContent=step.note; }
@@ -456,16 +424,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ringPhase.textContent = step.kind==='rest'?'ОТДЫХ':(step.duration?'РАБОТА':'ГОТОВ');
         announceStep(step);
 
-        // Показ следующего упражнения во время отдыха
         const nextExerciseBlock = document.getElementById('nextExercise');
         const nextExerciseName = document.getElementById('nextExerciseName');
         if (step.kind === 'rest') {
             let nextWorkStep = null;
             for (let i = stepIdx + 1; i < steps.length; i++) {
-                if (steps[i].kind === 'work') {
-                    nextWorkStep = steps[i];
-                    break;
-                }
+                if (steps[i].kind === 'work') { nextWorkStep = steps[i]; break; }
             }
             if (nextWorkStep) {
                 nextExerciseBlock.hidden = false;
@@ -495,13 +459,11 @@ document.addEventListener('DOMContentLoaded', function() {
             restAdjust.hidden=true;
         }
     }
-
     function sessionTitle() {
         if (sessionType==='warmup') return 'Разминка';
         if (sessionType==='cooldown') return 'Заминка';
         return DAYS[sessionType].title;
     }
-
     function updateRing() {
         const mins = Math.floor(timeLeft/60), secs = timeLeft%60;
         ringTime.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
@@ -510,7 +472,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (timeLeft <= 3 && timeLeft > 0 && steps[stepIdx].kind !== 'rest') ring.classList.add('pulse');
         else ring.classList.remove('pulse');
     }
-
     function adjustRest(amount) {
         if (steps[stepIdx].kind !== 'rest' || !ticking) return;
         const newTime = timeLeft + amount;
@@ -519,7 +480,6 @@ document.addEventListener('DOMContentLoaded', function() {
         totalTime = totalTime + amount;
         updateRing();
     }
-
     function toggleTimer() {
         const step = steps[stepIdx];
         if (!step.duration) {
@@ -528,28 +488,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (ticking) { clearInterval(intervalId); ticking=false; mainActionBtn.textContent='Продолжить'; }
         else { mainActionBtn.textContent='Пауза'; startTimer(); }
     }
-
     function skipStep() { clearInterval(intervalId); ticking=false; nextStep(); }
-
     function nextStep() {
         stepIdx++;
         if (stepIdx >= steps.length) { finishSession(); return; }
         setupStep();
     }
-
     function markExerciseProgress(step) {
         if (step.kind!=='work') return;
         if (sessionType==='A'||sessionType==='B'||sessionType==='C') sessionDone[sessionType].add(step.exIdx);
         else if (sessionType==='warmup') sessionDone.warmup.add(step.exIdx+'-'+step.exNum);
     }
-
     function closePlayer() {
         clearInterval(intervalId); ticking=false;
         player.hidden=true; document.body.style.overflow='';
         restAdjust.hidden=true;
         if (synth.speaking) synth.cancel();
     }
-
     function finishSession() {
         speak('Тренировка завершена. Отличная работа!');
         closePlayer();
@@ -563,12 +518,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const activeTab = [...dayTabs.children].find(t=>t.dataset.view===view);
         if (activeTab) activeTab.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
     }
-
     function renderTabs() {
         [...dayTabs.querySelectorAll('.tab')].forEach(t=>t.classList.toggle('is-active', t.dataset.view===currentView));
         scrollToTab(currentView);
     }
-
     function renderBanner() {
         if (['A','B','C'].includes(currentView)) {
             const msg = checkProgression(currentView);
@@ -576,7 +529,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         progressionBanner.hidden=true;
     }
-
     function exerciseCard(ex, exIdx, dayKey) {
         const done = sessionDone[dayKey].has(exIdx);
         const repsText = ex.mode==='time'?(ex.durationLabel||`${ex.duration} сек`):ex.repsLabel;
@@ -592,7 +544,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="card__go" aria-label="Начать"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></button>
         </div>`;
     }
-
     function renderDay(dayKey) {
         const day = DAYS[dayKey];
         if (day.circuit) {
@@ -618,7 +569,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
     function renderFreeform(kind) {
         const meta = kind==='warmup'?WARMUP:COOLDOWN;
         let list='';
@@ -637,9 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="btn btn--primary" id="startFreeBtn">Начать таймер · ${meta.totalSeconds/60} мин</button></div>`;
         document.getElementById('startFreeBtn').addEventListener('click', ()=>startSession(kind, buildFreeformSteps(kind)));
     }
-
     function renderView() { renderTabs(); renderBanner(); if (currentView==='warmup') renderFreeform('warmup'); else if (currentView==='cooldown') renderFreeform('cooldown'); else renderDay(currentView); }
-
     function renderLog() {
         const log = getLog();
         if (!log.length) { logList.innerHTML=`<p class="log-empty">Пока пусто. Заверши первую тренировку — запись появится здесь.</p>`; return; }
@@ -694,7 +642,6 @@ document.addEventListener('DOMContentLoaded', function() {
     logDrawer.addEventListener('click', e=>{ if (e.target===logDrawer) logDrawer.hidden=true; });
     document.getElementById('dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
 
-    // Настройки
     settingsBtn.addEventListener('click', ()=> settingsModal.hidden = false);
     closeSettingsBtn.addEventListener('click', ()=> settingsModal.hidden = true);
     settingsModal.addEventListener('click', e=>{ if (e.target===settingsModal) settingsModal.hidden = true; });
