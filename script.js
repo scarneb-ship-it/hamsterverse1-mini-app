@@ -258,28 +258,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
+                    'HTTP-Referer': window.location.href,
+                    'X-Title': 'Домашний фитнес'
                 },
                 body: JSON.stringify({
                     model: AI_MODEL,
                     messages: [
                         { role: 'system', content: systemPrompt },
-                        ...aiHistory // вся история диалога
+                        ...aiHistory
                     ],
                     max_tokens: 500,
                     temperature: 0.7
                 })
             });
 
+            const status = response.status;
             const data = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = data.error?.message || data.error || `HTTP ${status}`;
+                console.error('OpenRouter error:', data);
+                addMessage('assistant', `Ошибка API: ${errorMsg}`);
+                return;
+            }
+
             if (data.choices && data.choices[0] && data.choices[0].message) {
                 const botReply = data.choices[0].message.content.trim();
                 addMessage('assistant', botReply);
             } else {
-                addMessage('assistant', 'Произошла ошибка. Попробуйте ещё раз.');
+                addMessage('assistant', 'Неожиданный формат ответа от API.');
             }
         } catch (error) {
-            console.error('AI error:', error);
-            addMessage('assistant', 'Не удалось связаться с сервером. Проверьте интернет и API-ключ.');
+            console.error('Network error:', error);
+            addMessage('assistant', `Ошибка сети: ${error.message}. Проверьте подключение и CORS.`);
         }
     }
 
