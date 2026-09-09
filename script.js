@@ -77,6 +77,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== STORAGE ========== */
     const LOG_KEY = 'ironplan_log_v2';
+    const AI_KEY_STORAGE = 'ai_api_key';
+    const AI_HISTORY_STORAGE = 'ai_chat_history';
+    const AI_MODEL = 'nvidia/nemotron-3-8b-chat-4k-rlhf'; // бесплатная модель NVIDIA Nemotron 3
+
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
     function saveLogEntry(dayKey, quality) {
         const log = getLog();
@@ -92,6 +96,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     function dayLabel(k) { if (k==='A') return 'Силовая база'; if (k==='B') return 'Мышечный рост'; if (k==='C') return 'Жиросжигание'; return k; }
     function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
+
+    function getApiKey() {
+        return localStorage.getItem(AI_KEY_STORAGE) || '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';
+    }
+    function setApiKey(key) {
+        localStorage.setItem(AI_KEY_STORAGE, key);
+    }
+    function getAiHistory() {
+        try { return JSON.parse(localStorage.getItem(AI_HISTORY_STORAGE)) || []; } catch(e) { return []; }
+    }
+    function saveAiHistory(history) {
+        localStorage.setItem(AI_HISTORY_STORAGE, JSON.stringify(history));
+    }
 
     /* ========== DOM ========== */
     const $ = sel => document.querySelector(sel);
@@ -126,9 +143,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const voiceToggleCheckbox = $('#voiceToggle');
     const closeSettingsBtn = $('#closeSettingsBtn');
 
-    /* Новые элементы для следующего упражнения */
-    const nextExerciseBlock = $('#nextExercise');
-    const nextExerciseName = $('#nextExerciseName');
+    // Элементы ИИ-тренера
+    const aiTrainerBtn = $('#aiTrainerBtn');
+    const aiModal = $('#aiModal');
+    const aiMessages = $('#aiMessages');
+    const aiForm = $('#aiForm');
+    const aiInput = $('#aiInput');
+    const closeAiBtn = $('#closeAiBtn');
+    const openaiKeyInput = $('#openaiKey');
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -187,6 +209,108 @@ document.addEventListener('DOMContentLoaded', function() {
     voiceToggleCheckbox.checked = voiceEnabled;
     themeSelect.value = localStorage.getItem('theme') || 'system';
     applyTheme(themeSelect.value);
+    openaiKeyInput.value = getApiKey();
+
+    /* ========== AI TRAINER LOGIC ========== */
+    let aiHistory = getAiHistory();
+    function renderAiHistory() {
+        aiMessages.innerHTML = '';
+        if (aiHistory.length === 0) {
+            addMessageToDOM('assistant', 'Привет! Я твой фитнес-помощник. Задай вопрос о тренировках, упражнениях или плане.');
+        } else {
+            aiHistory.forEach(msg => addMessageToDOM(msg.role, msg.content));
+        }
+    }
+
+    function addMessageToDOM(role, content) {
+        const div = document.createElement('div');
+        div.classList.add('ai-message');
+        div.classList.add(role === 'user' ? 'ai-message--user' : 'ai-message--bot');
+        div.textContent = content;
+        aiMessages.appendChild(div);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+    }
+
+    function addMessage(role, content) {
+        aiHistory.push({ role, content });
+        saveAiHistory(aiHistory);
+        addMessageToDOM(role, content);
+    }
+
+    async function sendToAI(userMessage) {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            addMessage('assistant', 'Пожалуйста, укажите API-ключ OpenRouter в настройках.');
+            return;
+        }
+
+        addMessage('user', userMessage);
+
+        const systemPrompt = `Ты — персональный фитнес-тренер в приложении "Домашний фитнес". 
+        Отвечай кратко, полезно и мотивирующе. 
+        Ты знаешь структуру приложения: есть разминка, три силовых дня (A - силовая база, B - мышечный рост, C - жиросжигание/круговая), и заминка. 
+        Пользователь занимается дома с гантелями и турником. 
+        Отвечай на русском языке.`;
+
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: AI_MODEL,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        ...aiHistory // вся история диалога
+                    ],
+                    max_tokens: 500,
+                    temperature: 0.7
+                })
+            });
+
+            const data = await response.json();
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                const botReply = data.choices[0].message.content.trim();
+                addMessage('assistant', botReply);
+            } else {
+                addMessage('assistant', 'Произошла ошибка. Попробуйте ещё раз.');
+            }
+        } catch (error) {
+            console.error('AI error:', error);
+            addMessage('assistant', 'Не удалось связаться с сервером. Проверьте интернет и API-ключ.');
+        }
+    }
+
+    // Обработчики ИИ
+    aiTrainerBtn.addEventListener('click', () => {
+        aiModal.hidden = false;
+        renderAiHistory();
+        aiInput.focus();
+    });
+
+    closeAiBtn.addEventListener('click', () => {
+        aiModal.hidden = true;
+    });
+
+    aiModal.addEventListener('click', (e) => {
+        if (e.target === aiModal) {
+            aiModal.hidden = true;
+        }
+    });
+
+    aiForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = aiInput.value.trim();
+        if (!text) return;
+        aiInput.value = '';
+        sendToAI(text);
+    });
+
+    openaiKeyInput.addEventListener('change', () => {
+        setApiKey(openaiKeyInput.value);
+    });
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -308,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ring.classList.remove('is-rest','is-go','pulse');
         ring.classList.add(step.kind==='rest'?'is-rest':'is-go');
         playerCrumbs.textContent = `${sessionTitle()} · ${stepIdx+1}/${steps.length}`;
-        // Номер упражнения больше не используется, скрыт через CSS
+        // Номер упражнения скрыт через CSS, playerNum не используется
         // playerNum.textContent = step.exNum || '—';
         playerName.textContent = step.exName;
         playerMeta.textContent = step.setLabel+(step.repsLabel?` · ${step.repsLabel}`:'');
@@ -321,8 +445,9 @@ document.addEventListener('DOMContentLoaded', function() {
         announceStep(step);
 
         // Показ следующего упражнения во время отдыха
+        const nextExerciseBlock = document.getElementById('nextExercise');
+        const nextExerciseName = document.getElementById('nextExerciseName');
         if (step.kind === 'rest') {
-            // Ищем следующий шаг с kind === 'work'
             let nextWorkStep = null;
             for (let i = stepIdx + 1; i < steps.length; i++) {
                 if (steps[i].kind === 'work') {
@@ -444,7 +569,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const done = sessionDone[dayKey].has(exIdx);
         const repsText = ex.mode==='time'?(ex.durationLabel||`${ex.duration} сек`):ex.repsLabel;
         const imgSrc = exerciseImages[ex.name];
-        // Больше не выводим номер упражнения, только изображение (если есть)
         const plateContent = imgSrc ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">` : ``;
         return `<div class="card ${done?'is-done':''}" data-day="${dayKey}" data-ex="${exIdx}" style="animation-delay:${exIdx*0.04}s">
             ${plateContent}
@@ -469,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="circuit-block"><div class="circuit-block__head"><h3>Круг × ${day.rounds}, отдых ${day.restBetweenRounds} сек между кругами</h3><span>без пауз внутри круга</span></div>
                 <div class="circuit-list">${rows}</div>
                 <button class="start-circuit" id="startCircuitBtn">Начать круговую тренировку</button></div>`;
-            $('#startCircuitBtn').addEventListener('click', ()=>startSession('C', buildCircuitSteps('C')));
+            document.getElementById('startCircuitBtn').addEventListener('click', ()=>startSession('C', buildCircuitSteps('C')));
             return;
         }
         const cards = day.exercises.map((ex,i)=>exerciseCard(ex,i,dayKey)).join('');
@@ -499,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="free-list" style="display:flex;flex-direction:column;gap:8px;">${list}</div>
             <div class="timer-box"><p>${kind==='warmup'?'Пройдите все упражнения подряд с таймером — точные секунды из плана.':COOLDOWN.note}</p>
             <button class="btn btn--primary" id="startFreeBtn">Начать таймер · ${meta.totalSeconds/60} мин</button></div>`;
-        $('#startFreeBtn').addEventListener('click', ()=>startSession(kind, buildFreeformSteps(kind)));
+        document.getElementById('startFreeBtn').addEventListener('click', ()=>startSession(kind, buildFreeformSteps(kind)));
     }
 
     function renderView() { renderTabs(); renderBanner(); if (currentView==='warmup') renderFreeform('warmup'); else if (currentView==='cooldown') renderFreeform('cooldown'); else renderDay(currentView); }
@@ -545,18 +669,18 @@ document.addEventListener('DOMContentLoaded', function() {
         currentView = tab.dataset.view;
         renderView();
     });
-    $('#playerClose').addEventListener('click', ()=>{ closePlayer(); renderView(); });
+    document.getElementById('playerClose').addEventListener('click', ()=>{ closePlayer(); renderView(); });
     mainActionBtn.addEventListener('click', toggleTimer);
     skipBtn.addEventListener('click', skipStep);
     restMinus.addEventListener('click', ()=>adjustRest(-5));
     restPlus.addEventListener('click', ()=>adjustRest(5));
-    $('#qualityYes').addEventListener('click', ()=>{ saveLogEntry(qualityModal.dataset.day, true); qualityModal.hidden=true; renderView(); });
-    $('#qualityNo').addEventListener('click', ()=>{ saveLogEntry(qualityModal.dataset.day, false); qualityModal.hidden=true; renderView(); });
-    $('#rulesToggle').addEventListener('click', ()=>$('#rulesCard').classList.toggle('is-open'));
-    $('#openLogBtn').addEventListener('click', ()=>{ renderLog(); logDrawer.hidden=false; });
-    $('#closeLogBtn').addEventListener('click', ()=>{ logDrawer.hidden=true; });
+    document.getElementById('qualityYes').addEventListener('click', ()=>{ saveLogEntry(qualityModal.dataset.day, true); qualityModal.hidden=true; renderView(); });
+    document.getElementById('qualityNo').addEventListener('click', ()=>{ saveLogEntry(qualityModal.dataset.day, false); qualityModal.hidden=true; renderView(); });
+    document.getElementById('rulesToggle').addEventListener('click', ()=>document.getElementById('rulesCard').classList.toggle('is-open'));
+    document.getElementById('openLogBtn').addEventListener('click', ()=>{ renderLog(); logDrawer.hidden=false; });
+    document.getElementById('closeLogBtn').addEventListener('click', ()=>{ logDrawer.hidden=true; });
     logDrawer.addEventListener('click', e=>{ if (e.target===logDrawer) logDrawer.hidden=true; });
-    $('#dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
+    document.getElementById('dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
 
     // Настройки
     settingsBtn.addEventListener('click', ()=> settingsModal.hidden = false);
