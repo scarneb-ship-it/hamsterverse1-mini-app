@@ -86,11 +86,8 @@
         </div>
         <form class="ai-card__input" id="aiForm">
             <input type="text" id="aiInput" placeholder="Напишите сообщение..." autocomplete="off">
-            <button type="button" class="btn btn--icon" id="voiceInputBtn" aria-label="Голосовой ввод" title="Голосовой ввод">
-                <svg viewBox="0 0 24 24" width="18" height="18">
-                    <path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                </svg>
-            </button>
+            <!-- Кнопка голосового ввода -->
+            <button type="button" class="btn btn--ghost ai-voice-btn" id="aiVoiceBtn" aria-label="Голосовой ввод" title="Голосовой ввод">🎤</button>
             <button type="submit" class="btn btn--primary">Отправить</button>
         </form>
     </div>
@@ -171,6 +168,11 @@
             <div class="setting-item">
                 <span>API ключ OpenRouter</span>
                 <input type="password" id="openaiKey" placeholder="sk-or-v1-..." style="width: 180px; background: var(--border); color: var(--text); border: 1px solid var(--text-secondary); border-radius: 8px; padding: 8px 12px; font-size: 14px;">
+            </div>
+            <!-- Новое поле для ключа Fish Audio -->
+            <div class="setting-item">
+                <span>API ключ Fish Audio</span>
+                <input type="password" id="fishAudioKey" placeholder="Введите ключ..." style="width: 180px; background: var(--border); color: var(--text); border: 1px solid var(--text-secondary); border-radius: 8px; padding: 8px 12px; font-size: 14px;">
             </div>
         </div>
         <button class="btn btn--primary" id="closeSettingsBtn" style="margin-top: 20px; width: 100%;">Закрыть</button>
