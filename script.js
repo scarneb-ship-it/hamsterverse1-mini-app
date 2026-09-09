@@ -257,9 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': window.location.href,
-                    'X-Title': 'Домашний фитнес'
+                    'Content-Type': 'application/json'
+                    // Убраны заголовки X-Title и HTTP-Referer, так как они могут содержать недопустимые символы
                 },
                 body: JSON.stringify({
                     model: AI_MODEL,
