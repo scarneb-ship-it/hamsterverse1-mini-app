@@ -79,15 +79,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
-    const FISH_AUDIO_KEY_STORAGE = 'fish_audio_api_key';
     // Только одна модель
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
     const DEFAULT_API_KEY = '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';
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
-    function saveLogEntry(dayKey, quality) {
+    function saveLogEntry(dayKey, quality, weight) {
         const log = getLog();
-        log.unshift({ day: dayKey, date: new Date().toISOString(), quality: !!quality });
+        log.unshift({ 
+            day: dayKey, 
+            date: new Date().toISOString(), 
+            quality: !!quality,
+            weight: weight || null
+        });
         localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 200)));
     }
     function checkProgression(dayKey) {
@@ -112,11 +116,50 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveAiHistory(history) {
         localStorage.setItem(AI_HISTORY_STORAGE, JSON.stringify(history));
     }
-    function getFishAudioKey() {
-        return localStorage.getItem(FISH_AUDIO_KEY_STORAGE) || '';
+
+    // Функция формирования полного описания программы для ИИ
+    function buildProgramDescription() {
+        const parts = [];
+        parts.push('== ПРОГРАММА ТРЕНИРОВОК ==');
+        parts.push(`Разминка (${WARMUP.totalSeconds/60} мин): ${WARMUP.items.map(it => `${it.name} (${it.mode==='time'?it.duration+' сек':it.repsLabel})`).join(', ')}`);
+        parts.push('');
+        Object.keys(DAYS).forEach(dayKey => {
+            const day = DAYS[dayKey];
+            parts.push(`День ${dayKey}: ${day.title}`);
+            parts.push(day.subtitle);
+            if (day.circuit) {
+                parts.push(`Круговая тренировка: ${day.rounds} круга, отдых между кругами ${day.restBetweenRounds} сек.`);
+                day.exercises.forEach(ex => {
+                    const params = ex.mode==='time' ? `${ex.duration} сек` : ex.repsLabel;
+                    const sides = ex.sides ? ' (на каждую сторону)' : '';
+                    parts.push(`- ${ex.name}${sides}: ${params}${ex.tech ? ' | Техника: '+ex.tech : ''}`);
+                });
+            } else {
+                day.exercises.forEach(ex => {
+                    const sets = ex.sets;
+                    const params = ex.mode==='time' ? `${ex.duration} сек` : ex.repsLabel;
+                    const sides = ex.sides ? ' (на каждую сторону)' : '';
+                    parts.push(`- ${ex.name}${sides}: ${sets} подход(а) × ${params}, отдых ${ex.restLabel}${ex.note ? ' | '+ex.note : ''}`);
+                });
+            }
+            parts.push('');
+        });
+        parts.push(`Заминка (${COOLDOWN.totalSeconds/60} мин): растяжки ${COOLDOWN.numbersText}.`);
+        return parts.join('\n');
     }
-    function setFishAudioKey(key) {
-        localStorage.setItem(FISH_AUDIO_KEY_STORAGE, key);
+
+    // Функция формирования истории тренировок для ИИ
+    function buildWorkoutHistoryDescription() {
+        const log = getLog();
+        if (!log.length) return 'История тренировок пока пуста.';
+        const lastEntries = log.slice(0, 10);
+        const lines = lastEntries.map(e => {
+            const date = new Date(e.date);
+            const dateStr = date.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit' });
+            const weight = e.weight ? `, вес гантелей: ${e.weight} кг` : '';
+            return `${dateStr} — День ${e.day} (${dayLabel(e.day)}), качество: ${e.quality?'максимум':'не максимум'}${weight}`;
+        });
+        return 'Последние тренировки:\n' + lines.join('\n');
     }
 
     /* ========== DOM ========== */
@@ -157,10 +200,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const aiMessages = $('#aiMessages');
     const aiForm = $('#aiForm');
     const aiInput = $('#aiInput');
-    const aiVoiceBtn = $('#aiVoiceBtn');
     const closeAiBtn = $('#closeAiBtn');
     const openaiKeyInput = $('#openaiKey');
-    const fishAudioKeyInput = $('#fishAudioKey');
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -207,7 +248,6 @@ document.addEventListener('DOMContentLoaded', function() {
     themeSelect.value = localStorage.getItem('theme') || 'system';
     applyTheme(themeSelect.value);
     openaiKeyInput.value = getApiKey();
-    fishAudioKeyInput.value = getFishAudioKey();
 
     /* ========== AI TRAINER LOGIC ========== */
     let aiHistory = getAiHistory();
@@ -233,37 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessageToDOM(role, content);
     }
 
-    // Функция синтеза речи через Fish Audio
-    async function synthesizeSpeech(text) {
-        const apiKey = getFishAudioKey();
-        if (!apiKey) return;
-        try {
-            const response = await fetch('https://api.fish.audio/v1/tts', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    text: text,
-                    voice_id: 's2.1-pro-free',
-                    format: 'mp3'
-                })
-            });
-            if (!response.ok) {
-                console.error('Fish Audio error:', response.status);
-                return;
-            }
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            audio.play();
-            audio.onended = () => URL.revokeObjectURL(audioUrl);
-        } catch (error) {
-            console.error('Fish Audio synthesis error:', error);
-        }
-    }
-
     async function sendToAI(userMessage) {
         const apiKey = getApiKey();
         if (!apiKey) {
@@ -273,11 +282,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         addMessage('user', userMessage);
 
+        const programInfo = buildProgramDescription();
+        const historyInfo = buildWorkoutHistoryDescription();
         const systemPrompt = `Ты — персональный фитнес-тренер в приложении "Домашний фитнес". 
-        Отвечай кратко, полезно и мотивирующе. 
-        Ты знаешь структуру приложения: есть разминка, три силовых дня (A - силовая база, B - мышечный рост, C - жиросжигание/круговая), и заминка. 
-        Пользователь занимается дома с гантелями и турником. 
-        Отвечай на русском языке.`;
+Отвечай кратко, полезно и мотивирующе на русском языке.
+
+Ты имеешь полное знание программы тренировок и истории пользователя.
+
+${programInfo}
+
+${historyInfo}
+
+Учитывай эти данные при ответах: давай советы по прогрессии, технике, отдыху, изменению веса, питанию. 
+Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.`;
 
         // Используем только одну модель
         const model = FREE_MODELS[0];
@@ -306,8 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     const botReply = data.choices[0].message.content.trim();
                     addMessage('assistant', botReply);
-                    // Озвучка ответа
-                    synthesizeSpeech(botReply);
                 } else {
                     addMessage('assistant', 'Неожиданный формат ответа от API.');
                 }
@@ -320,28 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Network error:', error);
             addMessage('assistant', `Ошибка сети: ${error.message}. Проверьте подключение и CORS.`);
         }
-    }
-
-    // Инициализация распознавания речи
-    let recognition = null;
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.lang = 'ru-RU';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            aiInput.value = transcript;
-            aiForm.dispatchEvent(new Event('submit'));
-        };
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error', event.error);
-            aiVoiceBtn.classList.remove('listening');
-        };
-        recognition.onend = () => {
-            aiVoiceBtn.classList.remove('listening');
-        };
     }
 
     // Обработчики ИИ
@@ -359,21 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
         aiInput.value = '';
         sendToAI(text);
     });
-    aiVoiceBtn.addEventListener('click', () => {
-        if (!recognition) {
-            alert('Распознавание речи не поддерживается в вашем браузере.');
-            return;
-        }
-        if (aiVoiceBtn.classList.contains('listening')) {
-            recognition.stop();
-            aiVoiceBtn.classList.remove('listening');
-        } else {
-            recognition.start();
-            aiVoiceBtn.classList.add('listening');
-        }
-    });
     openaiKeyInput.addEventListener('change', () => setApiKey(openaiKeyInput.value));
-    fishAudioKeyInput.addEventListener('change', () => setFishAudioKey(fishAudioKeyInput.value));
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -587,7 +566,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function finishSession() {
         speak('Тренировка завершена. Отличная работа!');
         closePlayer();
-        if (sessionType==='A'||sessionType==='B'||sessionType==='C') { qualityModal.hidden=false; qualityModal.dataset.day=sessionType; }
+        if (sessionType==='A'||sessionType==='B'||sessionType==='C') { 
+            qualityModal.hidden=false; 
+            qualityModal.dataset.day=sessionType;
+            document.getElementById('workoutWeight').value = ''; // сброс поля веса
+        }
         else if (sessionType==='cooldown') { sessionDone.cooldown=true; renderView(); }
         else renderView();
     }
@@ -670,7 +653,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderLog() {
         const log = getLog();
         if (!log.length) { logList.innerHTML=`<p class="log-empty">Пока пусто. Заверши первую тренировку — запись появится здесь.</p>`; return; }
-        logList.innerHTML = log.map(e=>`<div class="log-item"><span><b>${e.day}</b> · ${dayLabel(e.day)}</span><span>${fmtDate(e.date)}</span><span>${e.quality?'макс.':'норм'}</span></div>`).join('');
+        logList.innerHTML = log.map(e=>{
+            const weightText = e.weight ? ` · ${e.weight} кг` : '';
+            return `<div class="log-item">
+                <span><b>${e.day}</b> · ${dayLabel(e.day)}${weightText}</span>
+                <span>${fmtDate(e.date)}</span>
+                <span>${e.quality?'макс.':'норм'}</span>
+            </div>`;
+        }).join('');
     }
 
     /* ========== GESTURES ========== */
@@ -713,8 +703,18 @@ document.addEventListener('DOMContentLoaded', function() {
     skipBtn.addEventListener('click', skipStep);
     restMinus.addEventListener('click', ()=>adjustRest(-5));
     restPlus.addEventListener('click', ()=>adjustRest(5));
-    document.getElementById('qualityYes').addEventListener('click', ()=>{ saveLogEntry(qualityModal.dataset.day, true); qualityModal.hidden=true; renderView(); });
-    document.getElementById('qualityNo').addEventListener('click', ()=>{ saveLogEntry(qualityModal.dataset.day, false); qualityModal.hidden=true; renderView(); });
+    document.getElementById('qualityYes').addEventListener('click', ()=>{
+        const weight = parseFloat(document.getElementById('workoutWeight').value) || null;
+        saveLogEntry(qualityModal.dataset.day, true, weight);
+        qualityModal.hidden = true;
+        renderView();
+    });
+    document.getElementById('qualityNo').addEventListener('click', ()=>{
+        const weight = parseFloat(document.getElementById('workoutWeight').value) || null;
+        saveLogEntry(qualityModal.dataset.day, false, weight);
+        qualityModal.hidden = true;
+        renderView();
+    });
     document.getElementById('rulesToggle').addEventListener('click', ()=>document.getElementById('rulesCard').classList.toggle('is-open'));
     document.getElementById('openLogBtn').addEventListener('click', ()=>{ renderLog(); logDrawer.hidden=false; });
     document.getElementById('closeLogBtn').addEventListener('click', ()=>{ logDrawer.hidden=true; });
