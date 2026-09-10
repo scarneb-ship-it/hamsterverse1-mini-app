@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
     function saveLogEntry(dayKey, quality, weight) {
         const log = getLog();
-        log.unshift({ 
-            day: dayKey, 
-            date: new Date().toISOString(), 
+        log.unshift({
+            day: dayKey,
+            date: new Date().toISOString(),
             quality: !!quality,
             weight: weight || null
         });
@@ -201,11 +201,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const voices = synth.getVoices();
         if (!voices || !voices.length) return;
 
-        // Приоритет — максимально приятные и человечные ru-RU голоса
         const priorities = [
             v => v.lang === 'ru-RU' && /google/i.test(v.name) && /female|женский/i.test(v.name),
             v => v.lang === 'ru-RU' && /google/i.test(v.name),
-            v => v.lang === 'ru-RU' && /(milena|milena|alena|alyona|katya|yuri|dmitri)/i.test(v.name),
+            v => v.lang === 'ru-RU' && /(milena|alena|alyona|katya|yuri|dmitri)/i.test(v.name),
             v => v.lang === 'ru-RU' && !v.localService,
             v => v.lang === 'ru-RU',
             v => v.lang && v.lang.toLowerCase().startsWith('ru'),
@@ -220,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (synth) {
         pickVoice();
         synth.onvoiceschanged = pickVoice;
-        // Прогреваем движок — некоторые голоса (Google) появляются асинхронно
         setTimeout(pickVoice, 200);
         setTimeout(pickVoice, 1000);
     }
@@ -292,7 +290,8 @@ ${programInfo}
 ${historyInfo}
 
 Учитывай эти данные при ответах: давай советы по прогрессии, технике, отдыху, изменению веса, питанию. 
-Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.`;
+Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.
+Если просят список упражнений — перечисляй их по дням, кратко и структурированно.`;
 
         const model = FREE_MODELS[0];
         try {
@@ -300,7 +299,9 @@ ${historyInfo}
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': location.origin || 'https://localhost',
+                    'X-Title': 'Домашний фитнес'
                 },
                 body: JSON.stringify({
                     model: model,
@@ -308,25 +309,35 @@ ${historyInfo}
                         { role: 'system', content: systemPrompt },
                         ...aiHistory
                     ],
-                    max_tokens: 500,
+                    max_tokens: 2000,
                     temperature: 0.7
                 })
             });
 
             const status = response.status;
-            const data = await response.json();
+            let data = null;
+            try { data = await response.json(); } catch (e) { data = null; }
 
-            if (response.ok) {
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    const botReply = data.choices[0].message.content.trim();
-                    addMessage('assistant', botReply);
-                } else {
-                    addMessage('assistant', 'Неожиданный формат ответа от API.');
+            if (response.ok && data) {
+                const choice = data.choices && data.choices[0];
+                const message = choice && choice.message;
+                let botReply = '';
+                if (message) {
+                    if (typeof message.content === 'string' && message.content.length) {
+                        botReply = message.content;
+                    } else if (typeof message.reasoning === 'string' && message.reasoning.length) {
+                        botReply = message.reasoning;
+                    }
                 }
+                botReply = String(botReply || '').trim();
+                if (!botReply) {
+                    botReply = 'Модель вернула пустой ответ. Попробуйте переформулировать запрос или повторить.';
+                }
+                addMessage('assistant', botReply);
             } else {
-                const errorMsg = data.error?.message || data.error || `HTTP ${status}`;
-                console.error('OpenRouter error:', data);
-                addMessage('assistant', `Ошибка API: ${errorMsg}`);
+                const errorMsg = (data && (data.error?.message || data.error)) || `HTTP ${status}`;
+                console.error('OpenRouter error:', data || response);
+                addMessage('assistant', `Ошибка API: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
             }
         } catch (error) {
             console.error('Network error:', error);
@@ -348,13 +359,31 @@ ${historyInfo}
         aiInput.value = '';
         sendToAI(text);
     });
-    openaiKeyInput.addEventListener('change', () => setApiKey(openaiKeyInput.value));
+
+    openaiKeyInput.addEventListener('change', () => {
+        const val = openaiKeyInput.value.trim();
+        if (!val) {
+            localStorage.removeItem(AI_KEY_STORAGE);
+            openaiKeyInput.value = DEFAULT_API_KEY;
+        } else {
+            setApiKey(val);
+        }
+    });
+
+    const resetKeyBtn = document.getElementById('resetKeyBtn');
+    if (resetKeyBtn) {
+        resetKeyBtn.addEventListener('click', () => {
+            localStorage.removeItem(AI_KEY_STORAGE);
+            openaiKeyInput.value = DEFAULT_API_KEY;
+            alert('Ключ сброшен к стандартному.');
+        });
+    }
 
     /* ========== STATE ========== */
     let currentView = 'A';
     const sessionDone = { A: new Set(), B: new Set(), C: new Set() };
     let steps = [], stepIdx = 0, sessionType = null, timeLeft = 0, totalTime = 0, ticking = false, intervalId = null;
-    let currentPhase = 'idle'; // 'prep' | 'work' | 'rest'
+    let currentPhase = 'idle';
     const dayOrder = ['A', 'B', 'C'];
 
     /* ========== AUDIO / HAPTICS ========== */
@@ -444,7 +473,6 @@ ${historyInfo}
             timeLeft--;
             const step = steps[stepIdx];
 
-            // Объявление половины отдыха
             if (step.kind === 'rest' && !step.halfAnnounced && totalTime >= 20 &&
                 timeLeft > 0 && timeLeft <= Math.floor(totalTime / 2)) {
                 step.halfAnnounced = true;
@@ -481,7 +509,6 @@ ${historyInfo}
         if (step.image) { playerImage.src=step.image; playerImage.alt=step.exName; playerImageContainer.hidden=false; }
         else { playerImageContainer.hidden=true; }
 
-        // Блок "Следующее упражнение"
         const nextExerciseBlock = document.getElementById('nextExercise');
         const nextExerciseName = document.getElementById('nextExerciseName');
         if (step.kind === 'rest') {
@@ -507,7 +534,6 @@ ${historyInfo}
         }
     }
 
-    // Делаем отсчёт перед новым упражнением (не между сторонами одного упр.)
     function shouldPrep(step) {
         if (stepIdx === 0) return true;
         const prev = steps[stepIdx - 1];
@@ -595,7 +621,6 @@ ${historyInfo}
         }
     }
 
-    // Озвучка отдыха: название следующего упражнения, если оно отличается
     function announceRest(step) {
         if (!voiceEnabled) return;
         let message = `Отдых ${step.repsLabel}. `;
@@ -633,7 +658,6 @@ ${historyInfo}
     }
     function toggleTimer() {
         const step = steps[stepIdx];
-        // Фаза подготовки — кнопка пропускает отсчёт
         if (currentPhase === 'prep') {
             clearInterval(intervalId);
             ticking = false;
@@ -667,8 +691,8 @@ ${historyInfo}
     function finishSession() {
         speak('Тренировка завершена. Отличная работа!', true);
         closePlayer();
-        if (sessionType==='A'||sessionType==='B'||sessionType==='C') { 
-            qualityModal.hidden=false; 
+        if (sessionType==='A'||sessionType==='B'||sessionType==='C') {
+            qualityModal.hidden=false;
             qualityModal.dataset.day=sessionType;
             document.getElementById('workoutWeight').value = '';
         }
