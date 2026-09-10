@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== API KEY ========== */
-    const API_KEY = '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';
+    const API_KEY = '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';
 
     /* ========== DATA ========== */
     const DAYS = {
