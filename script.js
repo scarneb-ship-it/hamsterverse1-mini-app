@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+    /* ========== API KEY ========== */
+    const API_KEY = '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';
+
     /* ========== DATA ========== */
     const DAYS = {
         A: {
@@ -62,10 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== STORAGE ========== */
     const LOG_KEY = 'ironplan_log_v2';
-    const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
-    const DEFAULT_API_KEY = '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';
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
     function saveLogEntry(dayKey, quality, weight) {
@@ -88,12 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function dayLabel(k) { if (k==='A') return 'Силовая база'; if (k==='B') return 'Мышечный рост'; if (k==='C') return 'Жиросжигание'; return k; }
     function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
 
-    function getApiKey() {
-        return localStorage.getItem(AI_KEY_STORAGE) || DEFAULT_API_KEY;
-    }
-    function setApiKey(key) {
-        localStorage.setItem(AI_KEY_STORAGE, key);
-    }
     function getAiHistory() {
         try { return JSON.parse(localStorage.getItem(AI_HISTORY_STORAGE)) || []; } catch(e) { return []; }
     }
@@ -180,7 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const aiForm = $('#aiForm');
     const aiInput = $('#aiInput');
     const closeAiBtn = $('#closeAiBtn');
-    const openaiKeyInput = $('#openaiKey');
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -240,10 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
         speak(String(seconds), true);
     }
 
-    voiceToggleCheckbox.checked = voiceEnabled;
-    themeSelect.value = localStorage.getItem('theme') || 'system';
-    applyTheme(themeSelect.value);
-    openaiKeyInput.value = getApiKey();
+    if (voiceToggleCheckbox) voiceToggleCheckbox.checked = voiceEnabled;
+    if (themeSelect) {
+        themeSelect.value = localStorage.getItem('theme') || 'system';
+        applyTheme(themeSelect.value);
+    }
 
     /* ========== AI TRAINER LOGIC ========== */
     let aiHistory = getAiHistory();
@@ -270,9 +265,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function sendToAI(userMessage) {
-        const apiKey = getApiKey();
-        if (!apiKey) {
-            addMessage('assistant', 'Пожалуйста, укажите API-ключ OpenRouter в настройках.');
+        if (!API_KEY) {
+            addMessage('assistant', 'Не задан API-ключ. Укажите его в коде (переменная API_KEY в script.js).');
             return;
         }
 
@@ -298,7 +292,7 @@ ${historyInfo}
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${apiKey}`,
+                    'Authorization': `Bearer ${API_KEY}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': location.origin || 'https://localhost'
                 },
@@ -344,39 +338,20 @@ ${historyInfo}
         }
     }
 
-    aiTrainerBtn.addEventListener('click', () => {
+    if (aiTrainerBtn) aiTrainerBtn.addEventListener('click', () => {
         aiModal.hidden = false;
         renderAiHistory();
         aiInput.focus();
     });
-    closeAiBtn.addEventListener('click', () => aiModal.hidden = true);
-    aiModal.addEventListener('click', (e) => { if (e.target === aiModal) aiModal.hidden = true; });
-    aiForm.addEventListener('submit', (e) => {
+    if (closeAiBtn) closeAiBtn.addEventListener('click', () => aiModal.hidden = true);
+    if (aiModal) aiModal.addEventListener('click', (e) => { if (e.target === aiModal) aiModal.hidden = true; });
+    if (aiForm) aiForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = aiInput.value.trim();
         if (!text) return;
         aiInput.value = '';
         sendToAI(text);
     });
-
-    openaiKeyInput.addEventListener('change', () => {
-        const val = openaiKeyInput.value.trim();
-        if (!val) {
-            localStorage.removeItem(AI_KEY_STORAGE);
-            openaiKeyInput.value = DEFAULT_API_KEY;
-        } else {
-            setApiKey(val);
-        }
-    });
-
-    const resetKeyBtn = document.getElementById('resetKeyBtn');
-    if (resetKeyBtn) {
-        resetKeyBtn.addEventListener('click', () => {
-            localStorage.removeItem(AI_KEY_STORAGE);
-            openaiKeyInput.value = DEFAULT_API_KEY;
-            alert('Ключ сброшен к стандартному.');
-        });
-    }
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -826,14 +801,14 @@ ${historyInfo}
     logDrawer.addEventListener('click', e=>{ if (e.target===logDrawer) logDrawer.hidden=true; });
     document.getElementById('dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
 
-    settingsBtn.addEventListener('click', ()=> settingsModal.hidden = false);
-    closeSettingsBtn.addEventListener('click', ()=> settingsModal.hidden = true);
-    settingsModal.addEventListener('click', e=>{ if (e.target===settingsModal) settingsModal.hidden = true; });
-    themeSelect.addEventListener('change', e=>{
+    if (settingsBtn && settingsModal) settingsBtn.addEventListener('click', ()=> settingsModal.hidden = false);
+    if (closeSettingsBtn && settingsModal) closeSettingsBtn.addEventListener('click', ()=> settingsModal.hidden = true);
+    if (settingsModal) settingsModal.addEventListener('click', e=>{ if (e.target===settingsModal) settingsModal.hidden = true; });
+    if (themeSelect) themeSelect.addEventListener('change', e=>{
         localStorage.setItem('theme', e.target.value);
         applyTheme(e.target.value);
     });
-    voiceToggleCheckbox.addEventListener('change', e=>{
+    if (voiceToggleCheckbox) voiceToggleCheckbox.addEventListener('change', e=>{
         voiceEnabled = e.target.checked;
         localStorage.setItem('voiceEnabled', voiceEnabled);
         if (!voiceEnabled && synth && synth.speaking) synth.cancel();
