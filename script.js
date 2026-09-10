@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    /* ========== API KEY ========== */
-    const API_KEY = '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';
-
     /* ========== DATA ========== */
     const DAYS = {
         A: {
@@ -65,8 +62,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== STORAGE ========== */
     const LOG_KEY = 'ironplan_log_v2';
+    const AI_KEY_STORAGE = 'openrouter_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
+
+    function getApiKey() {
+        return (localStorage.getItem(AI_KEY_STORAGE) || '').trim();
+    }
+    function setApiKey(key) {
+        const clean = (key || '').trim();
+        if (clean) localStorage.setItem(AI_KEY_STORAGE, clean);
+        else localStorage.removeItem(AI_KEY_STORAGE);
+    }
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
     function saveLogEntry(dayKey, quality, weight) {
@@ -168,6 +175,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeSelect = $('#themeSelect');
     const voiceToggleCheckbox = $('#voiceToggle');
     const closeSettingsBtn = $('#closeSettingsBtn');
+    const openaiKeyInput = $('#openaiKey');
+    const saveKeyBtn = $('#saveKeyBtn');
 
     const aiTrainerBtn = $('#aiTrainerBtn');
     const aiModal = $('#aiModal');
@@ -239,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         themeSelect.value = localStorage.getItem('theme') || 'system';
         applyTheme(themeSelect.value);
     }
+    if (openaiKeyInput) openaiKeyInput.value = getApiKey();
 
     /* ========== AI TRAINER LOGIC ========== */
     let aiHistory = getAiHistory();
@@ -265,8 +275,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function sendToAI(userMessage) {
-        if (!API_KEY) {
-            addMessage('assistant', 'Не задан API-ключ. Укажите его в коде (переменная API_KEY в script.js).');
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            addMessage('assistant', 'API-ключ не указан. Откройте «Настройки» (шестерёнка) и вставьте ключ с openrouter.ai/keys.');
             return;
         }
 
@@ -292,7 +303,7 @@ ${historyInfo}
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${API_KEY}`,
+                    'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': location.origin || 'https://localhost'
                 },
@@ -352,6 +363,15 @@ ${historyInfo}
         aiInput.value = '';
         sendToAI(text);
     });
+
+    if (saveKeyBtn) {
+        saveKeyBtn.addEventListener('click', () => {
+            if (!openaiKeyInput) return;
+            const val = openaiKeyInput.value.trim();
+            setApiKey(val);
+            alert(val ? 'Ключ сохранён.' : 'Ключ удалён.');
+        });
+    }
 
     /* ========== STATE ========== */
     let currentView = 'A';
