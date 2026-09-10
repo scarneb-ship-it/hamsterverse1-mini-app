@@ -66,9 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const AI_HISTORY_STORAGE = 'ai_chat_history';
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
 
-    function getApiKey() {
-        return (localStorage.getItem(AI_KEY_STORAGE) || '').trim();
-    }
+    function getApiKey() { return (localStorage.getItem(AI_KEY_STORAGE) || '').trim(); }
     function setApiKey(key) {
         const clean = (key || '').trim();
         if (clean) localStorage.setItem(AI_KEY_STORAGE, clean);
@@ -78,12 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
     function saveLogEntry(dayKey, quality, weight) {
         const log = getLog();
-        log.unshift({
-            day: dayKey,
-            date: new Date().toISOString(),
-            quality: !!quality,
-            weight: weight || null
-        });
+        log.unshift({ day: dayKey, date: new Date().toISOString(), quality: !!quality, weight: weight || null });
         localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 200)));
     }
     function checkProgression(dayKey) {
@@ -96,12 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function dayLabel(k) { if (k==='A') return 'Силовая база'; if (k==='B') return 'Мышечный рост'; if (k==='C') return 'Жиросжигание'; return k; }
     function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
 
-    function getAiHistory() {
-        try { return JSON.parse(localStorage.getItem(AI_HISTORY_STORAGE)) || []; } catch(e) { return []; }
-    }
-    function saveAiHistory(history) {
-        localStorage.setItem(AI_HISTORY_STORAGE, JSON.stringify(history));
-    }
+    function getAiHistory() { try { return JSON.parse(localStorage.getItem(AI_HISTORY_STORAGE)) || []; } catch(e) { return []; } }
+    function saveAiHistory(history) { localStorage.setItem(AI_HISTORY_STORAGE, JSON.stringify(history)); }
 
     function buildProgramDescription() {
         const parts = [];
@@ -119,10 +108,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } else {
                 day.exercises.forEach(ex => {
-                    const sets = ex.sets;
                     const params = ex.mode==='time' ? `${ex.duration} сек` : ex.repsLabel;
                     const sides = ex.sides ? ' (на каждую сторону)' : '';
-                    parts.push(`- ${ex.name}${sides}: ${sets} подход(а) × ${params}, отдых ${ex.restLabel}${ex.note ? ' | '+ex.note : ''}`);
+                    parts.push(`- ${ex.name}${sides}: ${ex.sets} подход(а) × ${params}, отдых ${ex.restLabel}`);
                 });
             }
             parts.push('');
@@ -133,8 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function buildWorkoutHistoryDescription() {
         const log = getLog();
         if (!log.length) return 'История тренировок пока пуста.';
-        const lastEntries = log.slice(0, 10);
-        const lines = lastEntries.map(e => {
+        const lines = log.slice(0, 10).map(e => {
             const date = new Date(e.date);
             const dateStr = date.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit' });
             const weight = e.weight ? `, вес гантелей: ${e.weight} кг` : '';
@@ -152,7 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressionText = $('#progressionText');
     const player = $('#player');
     const playerCrumbs = $('#playerCrumbs');
-    const playerNum = $('#playerNum');
     const playerName = $('#playerName');
     const playerMeta = $('#playerMeta');
     const playerNote = $('#playerNote');
@@ -163,39 +149,62 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainActionBtn = $('#mainActionBtn');
     const skipBtn = $('#skipBtn');
     const qualityModal = $('#qualityModal');
-    const logDrawer = $('#logDrawer');
     const logList = $('#logList');
     const playerImageContainer = $('#playerImageContainer');
     const playerImage = $('#playerImage');
     const restAdjust = $('#restAdjust');
     const restMinus = $('#restMinus');
     const restPlus = $('#restPlus');
-    const settingsModal = $('#settingsModal');
     const themeSelect = $('#themeSelect');
     const voiceToggleCheckbox = $('#voiceToggle');
-    const closeSettingsBtn = $('#closeSettingsBtn');
     const openaiKeyInput = $('#openaiKey');
     const saveKeyBtn = $('#saveKeyBtn');
-    const aiModal = $('#aiModal');
     const aiMessages = $('#aiMessages');
     const aiForm = $('#aiForm');
     const aiInput = $('#aiInput');
-    const closeAiBtn = $('#closeAiBtn');
     const bottomNav = $('#bottomNav');
+    const screens = document.querySelectorAll('.screen');
 
-    /* ========== BOTTOM NAV ========== */
-    function setActiveNav(action) {
-        if (!bottomNav) return;
-        bottomNav.querySelectorAll('.bottom-nav__item').forEach(b => {
-            b.classList.toggle('is-active', b.dataset.action === action);
+    /* ========== SCREEN ROUTER ========== */
+    let currentScreen = 'home';
+
+    function showScreen(name, options = {}) {
+        if (!name) name = 'home';
+        currentScreen = name;
+
+        screens.forEach(s => {
+            const isMatch = s.dataset.screen === name;
+            s.classList.toggle('is-active', isMatch);
+            s.hidden = !isMatch;
         });
-    }
 
-    function closeAllOverlays() {
-        if (aiModal && !aiModal.hidden) aiModal.hidden = true;
-        if (settingsModal && !settingsModal.hidden) settingsModal.hidden = true;
-        if (logDrawer && !logDrawer.hidden) logDrawer.hidden = true;
-        if (qualityModal && !qualityModal.hidden) qualityModal.hidden = true;
+        // Синхронизируем нижнюю навигацию
+        if (bottomNav) {
+            bottomNav.querySelectorAll('.bottom-nav__item').forEach(b => {
+                b.classList.toggle('is-active', b.dataset.action === name);
+            });
+        }
+
+        // При переключении — на верх экрана
+        if (!options.keepScroll) {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            // Для AI-экрана прокручиваем сообщения вниз
+            if (name === 'ai') {
+                requestAnimationFrame(() => {
+                    aiMessages.scrollTop = aiMessages.scrollHeight;
+                    if (!options.noFocus) setTimeout(() => { try { aiInput.focus({ preventScroll: true }); } catch(_){} }, 250);
+                });
+            }
+            // Для журнала — обновляем список
+            if (name === 'log') {
+                renderLog();
+            }
+        }
+
+        // Управление кнопкой "назад" через history
+        if (name !== 'home') {
+            try { history.pushState({ screen: name }, ''); } catch(_) {}
+        }
     }
 
     if (bottomNav) {
@@ -204,29 +213,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!item) return;
             const action = item.dataset.action;
             if (navigator.vibrate) { try { navigator.vibrate(8); } catch(_){} }
-            setActiveNav(action);
 
-            switch (action) {
-                case 'home':
-                    closeAllOverlays();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    break;
-                case 'log':
-                    closeAllOverlays();
-                    renderLog();
-                    logDrawer.hidden = false;
-                    break;
-                case 'ai':
-                    closeAllOverlays();
-                    aiModal.hidden = false;
-                    renderAiHistory();
-                    setTimeout(() => { try { aiInput.focus(); } catch(_){} }, 250);
-                    break;
-                case 'settings':
-                    closeAllOverlays();
-                    settingsModal.hidden = false;
-                    break;
+            if (action === currentScreen) {
+                // Повторный тап по активной вкладке — скролл наверх
+                if (action === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (action === 'log') window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (action === 'ai') aiMessages.scrollTo({ top: aiMessages.scrollHeight, behavior: 'smooth' });
+                if (action === 'settings') window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
             }
+            showScreen(action);
         });
     }
 
@@ -252,7 +248,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!synth) return;
         const voices = synth.getVoices();
         if (!voices || !voices.length) return;
-
         const priorities = [
             v => v.lang === 'ru-RU' && /google/i.test(v.name) && /female|женский/i.test(v.name),
             v => v.lang === 'ru-RU' && /google/i.test(v.name),
@@ -267,7 +262,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (found) { selectedVoice = found; return; }
         }
     }
-
     if (synth) {
         pickVoice();
         synth.onvoiceschanged = pickVoice;
@@ -282,9 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ru-RU';
         if (selectedVoice) utter.voice = selectedVoice;
-        utter.rate = 0.98;
-        utter.pitch = 1.05;
-        utter.volume = 1.0;
+        utter.rate = 0.98; utter.pitch = 1.05; utter.volume = 1.0;
         synth.speak(utter);
     }
     function announceCountdown(seconds) {
@@ -299,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (openaiKeyInput) openaiKeyInput.value = getApiKey();
 
-    /* ========== AI TRAINER LOGIC ========== */
+    /* ========== AI TRAINER ========== */
     let aiHistory = getAiHistory();
     function renderAiHistory() {
         aiMessages.innerHTML = '';
@@ -326,28 +318,24 @@ document.addEventListener('DOMContentLoaded', function() {
     async function sendToAI(userMessage) {
         const apiKey = getApiKey();
         if (!apiKey) {
-            addMessage('assistant', 'API-ключ не указан. Откройте «Настройки» (в нижнем меню) и вставьте ключ с openrouter.ai/keys.');
+            addMessage('assistant', 'API-ключ не указан. Откройте «Ещё → Настройки» и вставьте ключ с openrouter.ai/keys.');
             return;
         }
-
         addMessage('user', userMessage);
 
-        const programInfo = buildProgramDescription();
-        const historyInfo = buildWorkoutHistoryDescription();
         const systemPrompt = `Ты — персональный фитнес-тренер в приложении "Домашний фитнес". 
 Отвечай кратко, полезно и мотивирующе на русском языке.
 
 Ты имеешь полное знание программы тренировок и истории пользователя.
 
-${programInfo}
+${buildProgramDescription()}
 
-${historyInfo}
+${buildWorkoutHistoryDescription()}
 
 Учитывай эти данные при ответах: давай советы по прогрессии, технике, отдыху, изменению веса, питанию. 
 Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.
 Если просят список упражнений — перечисляй их по дням, кратко и структурированно.`;
 
-        const model = FREE_MODELS[0];
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
@@ -357,17 +345,12 @@ ${historyInfo}
                     'HTTP-Referer': location.origin || 'https://localhost'
                 },
                 body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        ...aiHistory
-                    ],
+                    model: FREE_MODELS[0],
+                    messages: [{ role: 'system', content: systemPrompt }, ...aiHistory],
                     max_tokens: 2000,
                     temperature: 0.7
                 })
             });
-
-            const status = response.status;
             let data = null;
             try { data = await response.json(); } catch (e) { data = null; }
 
@@ -376,30 +359,21 @@ ${historyInfo}
                 const message = choice && choice.message;
                 let botReply = '';
                 if (message) {
-                    if (typeof message.content === 'string' && message.content.length) {
-                        botReply = message.content;
-                    } else if (typeof message.reasoning === 'string' && message.reasoning.length) {
-                        botReply = message.reasoning;
-                    }
+                    if (typeof message.content === 'string' && message.content.length) botReply = message.content;
+                    else if (typeof message.reasoning === 'string' && message.reasoning.length) botReply = message.reasoning;
                 }
                 botReply = String(botReply || '').trim();
-                if (!botReply) {
-                    botReply = 'Модель вернула пустой ответ. Попробуйте переформулировать запрос или повторить.';
-                }
+                if (!botReply) botReply = 'Модель вернула пустой ответ. Попробуйте переформулировать запрос.';
                 addMessage('assistant', botReply);
             } else {
-                const errorMsg = (data && (data.error?.message || data.error)) || `HTTP ${status}`;
-                console.error('OpenRouter error:', data || response);
+                const errorMsg = (data && (data.error?.message || data.error)) || `HTTP ${response.status}`;
                 addMessage('assistant', `Ошибка API: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
             }
         } catch (error) {
-            console.error('Network error:', error);
-            addMessage('assistant', `Ошибка сети: ${error.message}. Проверьте подключение и CORS.`);
+            addMessage('assistant', `Ошибка сети: ${error.message}.`);
         }
     }
 
-    if (closeAiBtn) closeAiBtn.addEventListener('click', () => { aiModal.hidden = true; setActiveNav('home'); });
-    if (aiModal) aiModal.addEventListener('click', (e) => { if (e.target === aiModal) { aiModal.hidden = true; setActiveNav('home'); } });
     if (aiForm) aiForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = aiInput.value.trim();
@@ -452,10 +426,7 @@ ${historyInfo}
         };
     }
     function makeRestStep(ex, exIdx, totalEx, label, duration, restLabel) {
-        return {
-            kind:'rest', exNum:ex.num, exName:'Отдых', exIdx, totalEx,
-            setLabel:label, duration, repsLabel:restLabel, note:null
-        };
+        return { kind:'rest', exNum:ex.num, exName:'Отдых', exIdx, totalEx, setLabel:label, duration, repsLabel:restLabel, note:null };
     }
     function makeCircuitWorkStep(ex, exIdx, totalEx, round, totalRounds, side) {
         return {
@@ -502,7 +473,8 @@ ${historyInfo}
     /* ========== SESSION ENGINE ========== */
     function startSession(type, steplist, startIdx=0) {
         sessionType=type; steps=steplist; stepIdx=startIdx;
-        player.hidden=false; document.body.style.overflow='hidden';
+        player.hidden=false;
+        document.body.style.overflow='hidden';
         haptic(15);
         setupStep();
     }
@@ -518,7 +490,6 @@ ${historyInfo}
                 step.halfAnnounced = true;
                 speak('Осталась половина отдыха', true);
             }
-
             if (timeLeft <= 5 && timeLeft > 0) {
                 beep(440,0.06);
                 if (step.kind !== 'rest') announceCountdown(timeLeft);
@@ -556,19 +527,14 @@ ${historyInfo}
             for (let i = stepIdx + 1; i < steps.length; i++) {
                 if (steps[i].kind === 'work') { nextWorkStep = steps[i]; break; }
             }
-            if (nextWorkStep) {
-                nextExerciseBlock.hidden = false;
-                nextExerciseName.textContent = nextWorkStep.exName;
-            } else {
-                nextExerciseBlock.hidden = true;
-            }
+            if (nextWorkStep) { nextExerciseBlock.hidden = false; nextExerciseName.textContent = nextWorkStep.exName; }
+            else { nextExerciseBlock.hidden = true; }
         } else {
             nextExerciseBlock.hidden = true;
         }
 
         if (step.kind === 'work') {
-            if (shouldPrep(step)) startPrep(step);
-            else beginWork(step);
+            if (shouldPrep(step)) startPrep(step); else beginWork(step);
         } else {
             startRest(step);
         }
@@ -586,15 +552,12 @@ ${historyInfo}
         currentPhase = 'prep';
         let prepLeft = 5;
         timeLeft = prepLeft; totalTime = prepLeft;
-
         ringPhase.textContent = 'ПРИГОТОВЬСЯ';
         ringTime.textContent = String(prepLeft);
         ringOuter.style.setProperty('--progress', '360deg');
         mainActionBtn.textContent = 'Начать сейчас';
-        skipBtn.hidden = false;
-        skipBtn.textContent = 'Пропустить';
+        skipBtn.hidden = false; skipBtn.textContent = 'Пропустить';
         restAdjust.hidden = true;
-
         speak(`Приготовься. ${step.exName}.`, true);
         haptic(20);
 
@@ -606,11 +569,9 @@ ${historyInfo}
                 ringOuter.style.setProperty('--progress', `${(prepLeft/5)*360}deg`);
                 speak(String(prepLeft), true);
             } else {
-                clearInterval(intervalId);
-                ticking = false;
+                clearInterval(intervalId); ticking = false;
                 speak('Начали!', true);
-                beep(880, 0.15);
-                haptic([80, 40, 80]);
+                beep(880, 0.15); haptic([80, 40, 80]);
                 beginWork(step);
             }
         }, 1000);
@@ -625,8 +586,7 @@ ${historyInfo}
             timeLeft = step.duration; totalTime = step.duration;
             updateRing();
             mainActionBtn.textContent = 'Пауза';
-            skipBtn.hidden = false;
-            skipBtn.textContent = 'Пропустить';
+            skipBtn.hidden = false; skipBtn.textContent = 'Пропустить';
             restAdjust.hidden = true;
             startTimer();
         } else {
@@ -634,8 +594,7 @@ ${historyInfo}
             ringTime.textContent = '✓';
             ringOuter.style.setProperty('--progress', '360deg');
             mainActionBtn.textContent = 'Готово';
-            skipBtn.hidden = false;
-            skipBtn.textContent = 'Пропустить';
+            skipBtn.hidden = false; skipBtn.textContent = 'Пропустить';
             restAdjust.hidden = true;
         }
     }
@@ -648,8 +607,7 @@ ${historyInfo}
             step.halfAnnounced = false;
             updateRing();
             mainActionBtn.textContent = 'Пауза';
-            skipBtn.hidden = false;
-            skipBtn.textContent = 'Пропустить';
+            skipBtn.hidden = false; skipBtn.textContent = 'Пропустить';
             restAdjust.hidden = false;
             announceRest(step);
             startTimer();
@@ -677,9 +635,7 @@ ${historyInfo}
         speak(message, true);
     }
 
-    function sessionTitle() {
-        return DAYS[sessionType].title;
-    }
+    function sessionTitle() { return DAYS[sessionType].title; }
 
     function updateRing() {
         const mins = Math.floor(timeLeft/60), secs = timeLeft%60;
@@ -702,8 +658,7 @@ ${historyInfo}
         const step = steps[stepIdx];
         haptic(12);
         if (currentPhase === 'prep') {
-            clearInterval(intervalId);
-            ticking = false;
+            clearInterval(intervalId); ticking = false;
             if (synth) synth.cancel();
             beep(880, 0.15);
             beginWork(step);
@@ -783,14 +738,14 @@ ${historyInfo}
                 return `<div class="circuit-item">${plateContent}<div class="card__body"><p class="card__name">${ex.name}</p><div class="card__stats"><span>${ex.mode==='time'?ex.duration+' сек':ex.repsLabel}</span></div></div></div>`;
             }).join('');
             mainContent.innerHTML = `<div class="section-head"><div><h2>${day.title}</h2><p>${day.subtitle}</p></div></div>
-                <div class="circuit-block"><div class="circuit-block__head"><h3>Круг × ${day.rounds}, отдых ${day.restBetweenRounds} сек между кругами</h3><span>без пауз внутри круга</span></div>
+                <div class="circuit-block"><div class="circuit-block__head"><h3>Круг × ${day.rounds}, отдых ${day.restBetweenRounds} сек</h3><span>без пауз внутри</span></div>
                 <div class="circuit-list">${rows}</div>
                 <button class="start-circuit" id="startCircuitBtn">Начать круговую тренировку</button></div>`;
             document.getElementById('startCircuitBtn').addEventListener('click', ()=>startSession('C', buildCircuitSteps('C')));
             return;
         }
         const cards = day.exercises.map((ex,i)=>exerciseCard(ex,i,dayKey)).join('');
-        mainContent.innerHTML = `<div class="section-head"><div><h2>${day.title}</h2><p>${day.subtitle}</p></div><span class="section-meta" style="display:none;">${day.exercises.length} упр.</span></div>${cards}`;
+        mainContent.innerHTML = `<div class="section-head"><div><h2>${day.title}</h2><p>${day.subtitle}</p></div></div>${cards}`;
         mainContent.querySelectorAll('.card').forEach(card=>{
             card.addEventListener('click', e=>{
                 if (!e.target.closest('.card__go')) return;
@@ -813,16 +768,19 @@ ${historyInfo}
         }).join('');
     }
 
-    /* ========== GESTURES ========== */
+    /* ========== GESTURES (свайп A/B/C на главном экране) ========== */
     let touchStartX=0, touchStartY=0;
     app.addEventListener('touchstart', e=>{
-        if (player.hidden) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
+        if (player.hidden && currentScreen === 'home') {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }
     }, {passive:true});
     app.addEventListener('touchend', e=>{
-        if (!player.hidden) return;
+        if (!player.hidden || currentScreen !== 'home') return;
         const dx = (e.changedTouches[0].clientX - touchStartX);
         const dy = (e.changedTouches[0].clientY - touchStartY);
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
             const dir = dx > 0 ? -1 : 1;
             const curIdx = dayOrder.indexOf(currentView);
             const newIdx = Math.min(Math.max(curIdx+dir, 0), dayOrder.length-1);
@@ -832,13 +790,13 @@ ${historyInfo}
                 renderView();
             }
         }
-    });
+    }, {passive:true});
+
     player.addEventListener('touchstart', e=>{ touchStartY = e.touches[0].clientY; }, {passive:true});
     player.addEventListener('touchend', e=>{
         const dy = (e.changedTouches[0].clientY - touchStartY);
         if (dy < -50 && !e.target.closest('button')) {
-            closePlayer();
-            renderView();
+            closePlayer(); renderView();
         }
     });
 
@@ -859,23 +817,17 @@ ${historyInfo}
         const weight = parseFloat(document.getElementById('workoutWeight').value) || null;
         saveLogEntry(qualityModal.dataset.day, true, weight);
         qualityModal.hidden = true;
-        setActiveNav('home');
         renderView();
     });
     document.getElementById('qualityNo').addEventListener('click', ()=>{
         const weight = parseFloat(document.getElementById('workoutWeight').value) || null;
         saveLogEntry(qualityModal.dataset.day, false, weight);
         qualityModal.hidden = true;
-        setActiveNav('home');
         renderView();
     });
     document.getElementById('rulesToggle').addEventListener('click', ()=>document.getElementById('rulesCard').classList.toggle('is-open'));
-    document.getElementById('closeLogBtn').addEventListener('click', ()=>{ logDrawer.hidden=true; setActiveNav('home'); });
-    logDrawer.addEventListener('click', e=>{ if (e.target===logDrawer) { logDrawer.hidden=true; setActiveNav('home'); } });
     document.getElementById('dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
 
-    if (closeSettingsBtn && settingsModal) closeSettingsBtn.addEventListener('click', ()=> { settingsModal.hidden = true; setActiveNav('home'); });
-    if (settingsModal) settingsModal.addEventListener('click', e=>{ if (e.target===settingsModal) { settingsModal.hidden = true; setActiveNav('home'); } });
     if (themeSelect) themeSelect.addEventListener('change', e=>{
         localStorage.setItem('theme', e.target.value);
         applyTheme(e.target.value);
@@ -889,44 +841,29 @@ ${historyInfo}
     });
 
     /* ========== КНОПКА "НАЗАД" ANDROID ========== */
-    // Закрытие оверлеев по кнопке "назад" через history API
     window.addEventListener('popstate', () => {
-        // Если открыт плеер — закрываем его
         if (!player.hidden) {
-            closePlayer();
-            renderView();
-            history.pushState({ app: true }, '');
+            closePlayer(); renderView();
+            history.pushState({ screen: currentScreen }, '');
             return;
         }
-        // Иначе закрываем любые оверлеи
-        const anyOverlay = (aiModal && !aiModal.hidden) ||
-                           (settingsModal && !settingsModal.hidden) ||
-                           (logDrawer && !logDrawer.hidden) ||
-                           (qualityModal && !qualityModal.hidden);
-        if (anyOverlay) {
-            closeAllOverlays();
-            setActiveNav('home');
-            history.pushState({ app: true }, '');
+        if (!qualityModal.hidden) {
+            qualityModal.hidden = true;
+            history.pushState({ screen: currentScreen }, '');
+            return;
         }
+        if (currentScreen !== 'home') {
+            showScreen('home');
+            // showScreen сам не пушит history для 'home', но нам нужно
+            // откатить текущее состояние (уже сделано браузером)
+            return;
+        }
+        // На главном экране — ничего не делаем, браузер выйдет из приложения
     });
-    history.pushState({ app: true }, '');
 
-    /* ========== АВТО-СКРЫТИЕ APPBAR ПРИ СКРОЛЛЕ ========== */
-    let lastScroll = 0;
-    const appbarEl = document.querySelector('.appbar');
-    window.addEventListener('scroll', () => {
-        const y = window.scrollY;
-        if (appbarEl) {
-            if (y > 80 && y > lastScroll + 4) {
-                appbarEl.style.transform = 'translateY(-100%)';
-                appbarEl.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)';
-            } else if (y < lastScroll - 4 || y < 40) {
-                appbarEl.style.transform = 'translateY(0)';
-                appbarEl.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)';
-            }
-        }
-        lastScroll = y;
-    }, { passive: true });
+    // Начальное состояние history
+    history.replaceState({ screen: 'home' }, '');
 
+    /* ========== INIT ========== */
     renderView();
 });
