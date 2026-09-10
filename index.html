@@ -180,7 +180,16 @@
 
 <script src="script.js"></script>
 <script>
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+    });
+    if (window.caches) {
+        caches.keys().then(keys => {
+            keys.forEach(k => caches.delete(k));
+        });
+    }
+    // После сброса — перезагрузка, чтобы уже без старого SW подтянуть файлы
+    setTimeout(() => location.reload(true), 800);
+}
 </script>
-</body>
-</html>
