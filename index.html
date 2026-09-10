@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="color-scheme" content="dark light">
     <title>Домашний фитнес</title>
     <link rel="manifest" href="manifest.json">
@@ -46,17 +46,6 @@
         </div>
 
         <main class="main" id="mainContent"></main>
-
-        <footer class="rules" id="rulesCard">
-            <button class="rules__toggle" id="rulesToggle">
-                <span>Правило прогрессии веса</span>
-                <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
-            </button>
-            <p class="rules__body" id="rulesBody">
-                Сделали максимум повторений во всех подходах — на двух тренировках подряд? Берите гантель тяжелее на 1–2 кг.
-                Гантели неразборные — увеличивайте отдых до верхней границы диапазона.
-            </p>
-        </footer>
     </section>
 
     <!-- ===================== ЭКРАН: ЖУРНАЛ ===================== -->
@@ -75,9 +64,14 @@
             <h1>ИИ-тренер</h1>
         </header>
         <div class="ai-card__messages" id="aiMessages"></div>
+        <div class="ai-typing" id="aiTyping" hidden>
+            <span></span><span></span><span></span>
+        </div>
         <form class="ai-card__input" id="aiForm">
-            <input type="text" id="aiInput" placeholder="Напишите сообщение..." autocomplete="off">
-            <button type="submit" class="btn btn--primary">Отправить</button>
+            <input type="text" id="aiInput" placeholder="Сообщение..." autocomplete="off" enterkeyhint="send">
+            <button type="submit" class="ai-send" aria-label="Отправить">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
         </form>
     </section>
 
@@ -135,7 +129,7 @@
     </button>
 </nav>
 
-<!-- ===================== ПЛЕЕР (полноэкранный) ===================== -->
+<!-- ===================== ПЛЕЕР ===================== -->
 <div class="player" id="player" hidden>
     <div class="player__top">
         <button class="player__close" id="playerClose" aria-label="Закрыть тренировку">
