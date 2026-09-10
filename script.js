@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const openaiKeyInput = $('#openaiKey');
     const saveKeyBtn = $('#saveKeyBtn');
     const aiMessages = $('#aiMessages');
+    const aiTyping = $('#aiTyping');
     const aiForm = $('#aiForm');
     const aiInput = $('#aiInput');
     const bottomNav = $('#bottomNav');
@@ -178,30 +179,31 @@ document.addEventListener('DOMContentLoaded', function() {
             s.hidden = !isMatch;
         });
 
-        // Синхронизируем нижнюю навигацию
         if (bottomNav) {
             bottomNav.querySelectorAll('.bottom-nav__item').forEach(b => {
                 b.classList.toggle('is-active', b.dataset.action === name);
             });
         }
 
-        // При переключении — на верх экрана
         if (!options.keepScroll) {
             window.scrollTo({ top: 0, behavior: 'auto' });
-            // Для AI-экрана прокручиваем сообщения вниз
+
             if (name === 'ai') {
+                // Прокручиваем чат вниз, но НЕ открываем клавиатуру
                 requestAnimationFrame(() => {
                     aiMessages.scrollTop = aiMessages.scrollHeight;
-                    if (!options.noFocus) setTimeout(() => { try { aiInput.focus({ preventScroll: true }); } catch(_){} }, 250);
                 });
             }
-            // Для журнала — обновляем список
             if (name === 'log') {
                 renderLog();
             }
         }
 
-        // Управление кнопкой "назад" через history
+        // Сбрасываем keyboard-класс при уходе с AI-экрана
+        if (name !== 'ai') {
+            document.body.classList.remove('keyboard-open');
+        }
+
         if (name !== 'home') {
             try { history.pushState({ screen: name }, ''); } catch(_) {}
         }
@@ -215,7 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (navigator.vibrate) { try { navigator.vibrate(8); } catch(_){} }
 
             if (action === currentScreen) {
-                // Повторный тап по активной вкладке — скролл наверх
                 if (action === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (action === 'log') window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (action === 'ai') aiMessages.scrollTo({ top: aiMessages.scrollHeight, behavior: 'smooth' });
@@ -225,6 +226,38 @@ document.addEventListener('DOMContentLoaded', function() {
             showScreen(action);
         });
     }
+
+    /* ========== КЛАВИАТУРА (Telegram-style) ========== */
+    // Определяем открытие клавиатуры через visualViewport.
+    // Когда она открыта — прячем нижний навбар, поле ввода само прижимается
+    // к низу viewport'а благодаря interactive-widget=resizes-content и 100dvh.
+    function setupKeyboardWatcher() {
+        if (!window.visualViewport) return;
+        const vv = window.visualViewport;
+        let baseline = window.innerHeight;
+
+        function check() {
+            const visibleH = vv.height;
+            const hidden = baseline - visibleH;
+            const keyboardOpen = hidden > 150 && currentScreen === 'ai';
+            if (keyboardOpen) {
+                document.body.classList.add('keyboard-open');
+                // Принудительно скроллим сообщения вниз
+                requestAnimationFrame(() => {
+                    aiMessages.scrollTop = aiMessages.scrollHeight;
+                });
+            } else {
+                document.body.classList.remove('keyboard-open');
+            }
+        }
+
+        vv.addEventListener('resize', check);
+        vv.addEventListener('scroll', check);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => { baseline = window.innerHeight; check(); }, 250);
+        });
+    }
+    setupKeyboardWatcher();
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
@@ -293,6 +326,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== AI TRAINER ========== */
     let aiHistory = getAiHistory();
+    let aiBusy = false;
+
     function renderAiHistory() {
         aiMessages.innerHTML = '';
         if (aiHistory.length === 0) {
@@ -300,6 +335,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             aiHistory.forEach(msg => addMessageToDOM(msg.role, msg.content));
         }
+        requestAnimationFrame(() => {
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        });
     }
     function addMessageToDOM(role, content) {
         const div = document.createElement('div');
@@ -315,13 +353,32 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessageToDOM(role, content);
     }
 
+    function showTyping() {
+        if (!aiTyping) return;
+        aiTyping.hidden = false;
+        requestAnimationFrame(() => {
+            aiMessages.appendChild(aiTyping); // переносим в конец
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        });
+    }
+    function hideTyping() {
+        if (!aiTyping) return;
+        aiTyping.hidden = true;
+    }
+
     async function sendToAI(userMessage) {
+        if (aiBusy) return;
+        aiBusy = true;
+
         const apiKey = getApiKey();
         if (!apiKey) {
             addMessage('assistant', 'API-ключ не указан. Откройте «Ещё → Настройки» и вставьте ключ с openrouter.ai/keys.');
+            aiBusy = false;
             return;
         }
+
         addMessage('user', userMessage);
+        showTyping();
 
         const systemPrompt = `Ты — персональный фитнес-тренер в приложении "Домашний фитнес". 
 Отвечай кратко, полезно и мотивирующе на русском языке.
@@ -336,23 +393,32 @@ ${buildWorkoutHistoryDescription()}
 Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.
 Если просят список упражнений — перечисляй их по дням, кратко и структурированно.`;
 
+        // Небольшая задержка, чтобы индикатор был виден
+        const minDelay = new Promise(res => setTimeout(res, 500));
+
         try {
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': location.origin || 'https://localhost'
-                },
-                body: JSON.stringify({
-                    model: FREE_MODELS[0],
-                    messages: [{ role: 'system', content: systemPrompt }, ...aiHistory],
-                    max_tokens: 2000,
-                    temperature: 0.7
-                })
-            });
+            const [response] = await Promise.all([
+                fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': location.origin || 'https://localhost'
+                    },
+                    body: JSON.stringify({
+                        model: FREE_MODELS[0],
+                        messages: [{ role: 'system', content: systemPrompt }, ...aiHistory],
+                        max_tokens: 2000,
+                        temperature: 0.7
+                    })
+                }),
+                minDelay
+            ]);
+
             let data = null;
             try { data = await response.json(); } catch (e) { data = null; }
+
+            hideTyping();
 
             if (response.ok && data) {
                 const choice = data.choices && data.choices[0];
@@ -370,7 +436,10 @@ ${buildWorkoutHistoryDescription()}
                 addMessage('assistant', `Ошибка API: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
             }
         } catch (error) {
+            hideTyping();
             addMessage('assistant', `Ошибка сети: ${error.message}.`);
+        } finally {
+            aiBusy = false;
         }
     }
 
@@ -380,7 +449,22 @@ ${buildWorkoutHistoryDescription()}
         if (!text) return;
         aiInput.value = '';
         sendToAI(text);
+        // Возвращаем фокус в поле ввода, чтобы можно было продолжить печатать
+        try { aiInput.focus({ preventScroll: true }); } catch(_) {}
     });
+
+    // Авто-рост поля ввода
+    if (aiInput) {
+        aiInput.addEventListener('input', () => {
+            aiInput.style.height = 'auto';
+            const maxH = 120;
+            const newH = Math.min(aiInput.scrollHeight, maxH);
+            aiInput.style.height = newH + 'px';
+        });
+    }
+
+    // Тап по полю чата (пустому месту) НЕ открывает клавиатуру — это нативное поведение.
+    // Клавиатура открывается только когда пользователь тапает по самому input'у.
 
     if (saveKeyBtn) {
         saveKeyBtn.addEventListener('click', () => {
@@ -768,7 +852,7 @@ ${buildWorkoutHistoryDescription()}
         }).join('');
     }
 
-    /* ========== GESTURES (свайп A/B/C на главном экране) ========== */
+    /* ========== GESTURES ========== */
     let touchStartX=0, touchStartY=0;
     app.addEventListener('touchstart', e=>{
         if (player.hidden && currentScreen === 'home') {
@@ -825,7 +909,6 @@ ${buildWorkoutHistoryDescription()}
         qualityModal.hidden = true;
         renderView();
     });
-    document.getElementById('rulesToggle').addEventListener('click', ()=>document.getElementById('rulesCard').classList.toggle('is-open'));
     document.getElementById('dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
 
     if (themeSelect) themeSelect.addEventListener('change', e=>{
@@ -854,16 +937,14 @@ ${buildWorkoutHistoryDescription()}
         }
         if (currentScreen !== 'home') {
             showScreen('home');
-            // showScreen сам не пушит history для 'home', но нам нужно
-            // откатить текущее состояние (уже сделано браузером)
             return;
         }
-        // На главном экране — ничего не делаем, браузер выйдет из приложения
     });
 
-    // Начальное состояние history
     history.replaceState({ screen: 'home' }, '');
 
     /* ========== INIT ========== */
+    // Заранее рендерим историю чата, чтобы не мигало при первом открытии
+    renderAiHistory();
     renderView();
 });
