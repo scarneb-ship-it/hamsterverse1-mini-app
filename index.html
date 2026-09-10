@@ -163,6 +163,12 @@
                     <span class="toggle__slider"></span>
                 </label>
             </div>
+            <div class="setting-item" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                <span>API ключ OpenRouter</span>
+                <input type="password" id="openaiKey" placeholder="sk-or-v1-..." style="width: 100%; background: var(--border); color: var(--text); border: 1px solid var(--text-secondary); border-radius: 8px; padding: 8px 12px; font-size: 14px;">
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">Получите бесплатный ключ на openrouter.ai/keys. Хранится только на этом устройстве.</p>
+                <button class="btn btn--ghost" id="saveKeyBtn" type="button" style="font-size: 13px; padding: 10px;">Сохранить ключ</button>
+            </div>
         </div>
         <button class="btn btn--primary" id="closeSettingsBtn" style="margin-top: 20px; width: 100%;">Закрыть</button>
     </div>
