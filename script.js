@@ -170,28 +170,77 @@ document.addEventListener('DOMContentLoaded', function() {
     const restAdjust = $('#restAdjust');
     const restMinus = $('#restMinus');
     const restPlus = $('#restPlus');
-    const settingsBtn = $('#settingsBtn');
     const settingsModal = $('#settingsModal');
     const themeSelect = $('#themeSelect');
     const voiceToggleCheckbox = $('#voiceToggle');
     const closeSettingsBtn = $('#closeSettingsBtn');
     const openaiKeyInput = $('#openaiKey');
     const saveKeyBtn = $('#saveKeyBtn');
-
-    const aiTrainerBtn = $('#aiTrainerBtn');
     const aiModal = $('#aiModal');
     const aiMessages = $('#aiMessages');
     const aiForm = $('#aiForm');
     const aiInput = $('#aiInput');
     const closeAiBtn = $('#closeAiBtn');
+    const bottomNav = $('#bottomNav');
+
+    /* ========== BOTTOM NAV ========== */
+    function setActiveNav(action) {
+        if (!bottomNav) return;
+        bottomNav.querySelectorAll('.bottom-nav__item').forEach(b => {
+            b.classList.toggle('is-active', b.dataset.action === action);
+        });
+    }
+
+    function closeAllOverlays() {
+        if (aiModal && !aiModal.hidden) aiModal.hidden = true;
+        if (settingsModal && !settingsModal.hidden) settingsModal.hidden = true;
+        if (logDrawer && !logDrawer.hidden) logDrawer.hidden = true;
+        if (qualityModal && !qualityModal.hidden) qualityModal.hidden = true;
+    }
+
+    if (bottomNav) {
+        bottomNav.addEventListener('click', (e) => {
+            const item = e.target.closest('.bottom-nav__item');
+            if (!item) return;
+            const action = item.dataset.action;
+            if (navigator.vibrate) { try { navigator.vibrate(8); } catch(_){} }
+            setActiveNav(action);
+
+            switch (action) {
+                case 'home':
+                    closeAllOverlays();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    break;
+                case 'log':
+                    closeAllOverlays();
+                    renderLog();
+                    logDrawer.hidden = false;
+                    break;
+                case 'ai':
+                    closeAllOverlays();
+                    aiModal.hidden = false;
+                    renderAiHistory();
+                    setTimeout(() => { try { aiInput.focus(); } catch(_){} }, 250);
+                    break;
+                case 'settings':
+                    closeAllOverlays();
+                    settingsModal.hidden = false;
+                    break;
+            }
+        });
+    }
 
     /* ========== THEME ========== */
     function applyTheme(mode) {
         if (mode === 'light') document.documentElement.setAttribute('data-theme', 'light');
         else if (mode === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         else document.documentElement.removeAttribute('data-theme');
+
+        const isLight = mode === 'light' ||
+            (mode !== 'dark' && window.matchMedia('(prefers-color-scheme: light)').matches);
+
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-        if (metaThemeColor) metaThemeColor.setAttribute('content', mode === 'light' ? '#FFFFFF' : '#FF5A1F');
+        if (metaThemeColor) metaThemeColor.setAttribute('content', isLight ? '#FFFFFF' : '#0A0A0A');
     }
 
     /* ========== VOICE ========== */
@@ -277,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function sendToAI(userMessage) {
         const apiKey = getApiKey();
         if (!apiKey) {
-            addMessage('assistant', 'API-ключ не указан. Откройте «Настройки» (шестерёнка) и вставьте ключ с openrouter.ai/keys.');
+            addMessage('assistant', 'API-ключ не указан. Откройте «Настройки» (в нижнем меню) и вставьте ключ с openrouter.ai/keys.');
             return;
         }
 
@@ -349,13 +398,8 @@ ${historyInfo}
         }
     }
 
-    if (aiTrainerBtn) aiTrainerBtn.addEventListener('click', () => {
-        aiModal.hidden = false;
-        renderAiHistory();
-        aiInput.focus();
-    });
-    if (closeAiBtn) closeAiBtn.addEventListener('click', () => aiModal.hidden = true);
-    if (aiModal) aiModal.addEventListener('click', (e) => { if (e.target === aiModal) aiModal.hidden = true; });
+    if (closeAiBtn) closeAiBtn.addEventListener('click', () => { aiModal.hidden = true; setActiveNav('home'); });
+    if (aiModal) aiModal.addEventListener('click', (e) => { if (e.target === aiModal) { aiModal.hidden = true; setActiveNav('home'); } });
     if (aiForm) aiForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = aiInput.value.trim();
@@ -369,6 +413,7 @@ ${historyInfo}
             if (!openaiKeyInput) return;
             const val = openaiKeyInput.value.trim();
             setApiKey(val);
+            if (navigator.vibrate) { try { navigator.vibrate(20); } catch(_){} }
             alert(val ? 'Ключ сохранён.' : 'Ключ удалён.');
         });
     }
@@ -393,7 +438,7 @@ ${historyInfo}
             osc.start(); osc.stop(audioCtx.currentTime+dur);
         } catch(e) {}
     }
-    function haptic(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+    function haptic(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms); } catch(_){} } }
 
     /* ========== STEP GENERATION ========== */
     function enrichStep(step, ex) { if (ex && exerciseImages[ex.name]) step.image = exerciseImages[ex.name]; return step; }
@@ -458,6 +503,7 @@ ${historyInfo}
     function startSession(type, steplist, startIdx=0) {
         sessionType=type; steps=steplist; stepIdx=startIdx;
         player.hidden=false; document.body.style.overflow='hidden';
+        haptic(15);
         setupStep();
     }
 
@@ -550,6 +596,7 @@ ${historyInfo}
         restAdjust.hidden = true;
 
         speak(`Приготовься. ${step.exName}.`, true);
+        haptic(20);
 
         ticking = true;
         intervalId = setInterval(() => {
@@ -648,10 +695,12 @@ ${historyInfo}
         if (newTime < 0 || newTime > 600) return;
         timeLeft = newTime;
         totalTime = totalTime + amount;
+        haptic(10);
         updateRing();
     }
     function toggleTimer() {
         const step = steps[stepIdx];
+        haptic(12);
         if (currentPhase === 'prep') {
             clearInterval(intervalId);
             ticking = false;
@@ -666,7 +715,7 @@ ${historyInfo}
         if (ticking) { clearInterval(intervalId); ticking=false; mainActionBtn.textContent='Продолжить'; }
         else { mainActionBtn.textContent='Пауза'; startTimer(); }
     }
-    function skipStep() { clearInterval(intervalId); ticking=false; nextStep(); }
+    function skipStep() { haptic(15); clearInterval(intervalId); ticking=false; nextStep(); }
     function nextStep() {
         stepIdx++;
         if (stepIdx >= steps.length) { finishSession(); return; }
@@ -684,6 +733,7 @@ ${historyInfo}
     }
     function finishSession() {
         speak('Тренировка завершена. Отличная работа!', true);
+        haptic([100, 60, 100, 60, 100]);
         closePlayer();
         if (sessionType==='A'||sessionType==='B'||sessionType==='C') {
             qualityModal.hidden=false;
@@ -778,6 +828,7 @@ ${historyInfo}
             const newIdx = Math.min(Math.max(curIdx+dir, 0), dayOrder.length-1);
             if (newIdx !== curIdx) {
                 currentView = dayOrder[newIdx];
+                haptic(8);
                 renderView();
             }
         }
@@ -796,6 +847,7 @@ ${historyInfo}
         const tab = e.target.closest('.tab');
         if (!tab) return;
         currentView = tab.dataset.view;
+        haptic(8);
         renderView();
     });
     document.getElementById('playerClose').addEventListener('click', ()=>{ closePlayer(); renderView(); });
@@ -807,23 +859,23 @@ ${historyInfo}
         const weight = parseFloat(document.getElementById('workoutWeight').value) || null;
         saveLogEntry(qualityModal.dataset.day, true, weight);
         qualityModal.hidden = true;
+        setActiveNav('home');
         renderView();
     });
     document.getElementById('qualityNo').addEventListener('click', ()=>{
         const weight = parseFloat(document.getElementById('workoutWeight').value) || null;
         saveLogEntry(qualityModal.dataset.day, false, weight);
         qualityModal.hidden = true;
+        setActiveNav('home');
         renderView();
     });
     document.getElementById('rulesToggle').addEventListener('click', ()=>document.getElementById('rulesCard').classList.toggle('is-open'));
-    document.getElementById('openLogBtn').addEventListener('click', ()=>{ renderLog(); logDrawer.hidden=false; });
-    document.getElementById('closeLogBtn').addEventListener('click', ()=>{ logDrawer.hidden=true; });
-    logDrawer.addEventListener('click', e=>{ if (e.target===logDrawer) logDrawer.hidden=true; });
+    document.getElementById('closeLogBtn').addEventListener('click', ()=>{ logDrawer.hidden=true; setActiveNav('home'); });
+    logDrawer.addEventListener('click', e=>{ if (e.target===logDrawer) { logDrawer.hidden=true; setActiveNav('home'); } });
     document.getElementById('dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
 
-    if (settingsBtn && settingsModal) settingsBtn.addEventListener('click', ()=> settingsModal.hidden = false);
-    if (closeSettingsBtn && settingsModal) closeSettingsBtn.addEventListener('click', ()=> settingsModal.hidden = true);
-    if (settingsModal) settingsModal.addEventListener('click', e=>{ if (e.target===settingsModal) settingsModal.hidden = true; });
+    if (closeSettingsBtn && settingsModal) closeSettingsBtn.addEventListener('click', ()=> { settingsModal.hidden = true; setActiveNav('home'); });
+    if (settingsModal) settingsModal.addEventListener('click', e=>{ if (e.target===settingsModal) { settingsModal.hidden = true; setActiveNav('home'); } });
     if (themeSelect) themeSelect.addEventListener('change', e=>{
         localStorage.setItem('theme', e.target.value);
         applyTheme(e.target.value);
@@ -831,9 +883,50 @@ ${historyInfo}
     if (voiceToggleCheckbox) voiceToggleCheckbox.addEventListener('change', e=>{
         voiceEnabled = e.target.checked;
         localStorage.setItem('voiceEnabled', voiceEnabled);
+        haptic(10);
         if (!voiceEnabled && synth && synth.speaking) synth.cancel();
         else if (voiceEnabled) speak('Голосовые подсказки включены', true);
     });
+
+    /* ========== КНОПКА "НАЗАД" ANDROID ========== */
+    // Закрытие оверлеев по кнопке "назад" через history API
+    window.addEventListener('popstate', () => {
+        // Если открыт плеер — закрываем его
+        if (!player.hidden) {
+            closePlayer();
+            renderView();
+            history.pushState({ app: true }, '');
+            return;
+        }
+        // Иначе закрываем любые оверлеи
+        const anyOverlay = (aiModal && !aiModal.hidden) ||
+                           (settingsModal && !settingsModal.hidden) ||
+                           (logDrawer && !logDrawer.hidden) ||
+                           (qualityModal && !qualityModal.hidden);
+        if (anyOverlay) {
+            closeAllOverlays();
+            setActiveNav('home');
+            history.pushState({ app: true }, '');
+        }
+    });
+    history.pushState({ app: true }, '');
+
+    /* ========== АВТО-СКРЫТИЕ APPBAR ПРИ СКРОЛЛЕ ========== */
+    let lastScroll = 0;
+    const appbarEl = document.querySelector('.appbar');
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (appbarEl) {
+            if (y > 80 && y > lastScroll + 4) {
+                appbarEl.style.transform = 'translateY(-100%)';
+                appbarEl.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)';
+            } else if (y < lastScroll - 4 || y < 40) {
+                appbarEl.style.transform = 'translateY(0)';
+                appbarEl.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)';
+            }
+        }
+        lastScroll = y;
+    }, { passive: true });
 
     renderView();
 });
