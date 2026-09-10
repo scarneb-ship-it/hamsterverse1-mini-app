@@ -300,8 +300,7 @@ ${historyInfo}
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
-                    'HTTP-Referer': location.origin || 'https://localhost',
-                    'X-Title': 'Домашний фитнес'
+                    'HTTP-Referer': location.origin || 'https://localhost'
                 },
                 body: JSON.stringify({
                     model: model,
