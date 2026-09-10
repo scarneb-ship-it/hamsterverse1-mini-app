@@ -31,7 +31,6 @@
             <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 4h16v2H4zM4 11h10v2H4zM4 18h16v2H4z"/></svg>
             <span>Журнал</span>
         </button>
-        <!-- Кнопка ИИ-тренера -->
         <button class="header__ai-btn" id="aiTrainerBtn" aria-label="ИИ-тренер" title="ИИ-тренер">
             <svg viewBox="0 0 24 24" width="20" height="20">
                 <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-13h-2v6h2V7zm0 8h-2v2h2v-2z"/>
@@ -46,11 +45,9 @@
 
     <nav class="tabs-container" id="tabsContainer">
         <div class="tabs" id="dayTabs">
-            <button class="tab" data-view="warmup"><span class="tab__label">Разминка<em>5 мин</em></span></button>
             <button class="tab" data-view="A"><span class="tab__label">Силовая база<em>Турник + гантели</em></span></button>
             <button class="tab" data-view="B"><span class="tab__label">Мышечный рост<em>Гипертрофия</em></span></button>
             <button class="tab" data-view="C"><span class="tab__label">Жиросжигание<em>Круговая · кор</em></span></button>
-            <button class="tab" data-view="cooldown"><span class="tab__label">Заминка<em>3 мин</em></span></button>
         </div>
     </nav>
 
@@ -100,7 +97,6 @@
     </div>
     <div class="player__body">
         <div class="player__exercise">
-            <!-- Номер скрыт через CSS -->
             <span class="player__badge" id="playerNum">—</span>
             <h2 id="playerName">Упражнение</h2>
             <p class="player__meta" id="playerMeta">Подход 1 / 4</p>
@@ -136,7 +132,6 @@
     <div class="modal__card">
         <h3>Тренировка завершена</h3>
         <p>Во всех подходах базовых упражнений получилось выполнить максимум повторений?</p>
-        <!-- НОВОЕ: ввод веса -->
         <div class="weight-input">
             <label for="workoutWeight">Вес гантелей (кг):</label>
             <input type="number" id="workoutWeight" min="0" step="0.5" placeholder="Напр. 10" style="width:100%; margin-bottom:12px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 14px; font-size:14px;">
