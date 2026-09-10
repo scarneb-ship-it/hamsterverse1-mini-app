@@ -79,13 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
         log.unshift({ day: dayKey, date: new Date().toISOString(), quality: !!quality, weight: weight || null });
         localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 200)));
     }
-    function checkProgression(dayKey) {
-        const entries = getLog().filter(e => e.day === dayKey).slice(0, 2);
-        if (entries.length === 2 && entries.every(e => e.quality)) {
-            return `${entries.length}/2 последних тренировок «${dayLabel(dayKey)}» — максимум повторений. Пора добавить гантелям 1–2 кг.`;
-        }
-        return null;
-    }
     function dayLabel(k) { if (k==='A') return 'Силовая база'; if (k==='B') return 'Мышечный рост'; if (k==='C') return 'Жиросжигание'; return k; }
     function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
 
@@ -135,8 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const app = $('#appContainer');
     const dayTabs = $('#dayTabs');
     const mainContent = $('#mainContent');
-    const progressionBanner = $('#progressionBanner');
-    const progressionText = $('#progressionText');
     const player = $('#player');
     const playerCrumbs = $('#playerCrumbs');
     const playerName = $('#playerName');
@@ -163,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const aiForm = $('#aiForm');
     const aiInput = $('#aiInput');
     const bottomNav = $('#bottomNav');
+    const aiScreenEl = $('#screenAi');
     const screens = document.querySelectorAll('.screen');
 
     /* ========== SCREEN ROUTER ========== */
@@ -178,30 +170,26 @@ document.addEventListener('DOMContentLoaded', function() {
             s.hidden = !isMatch;
         });
 
-        // Синхронизируем нижнюю навигацию
         if (bottomNav) {
             bottomNav.querySelectorAll('.bottom-nav__item').forEach(b => {
                 b.classList.toggle('is-active', b.dataset.action === name);
             });
         }
 
-        // При переключении — на верх экрана
         if (!options.keepScroll) {
             window.scrollTo({ top: 0, behavior: 'auto' });
-            // Для AI-экрана прокручиваем сообщения вниз
             if (name === 'ai') {
+                // НЕ фокусируем поле ввода — клавиатура не выпрыгивает
                 requestAnimationFrame(() => {
                     aiMessages.scrollTop = aiMessages.scrollHeight;
-                    if (!options.noFocus) setTimeout(() => { try { aiInput.focus({ preventScroll: true }); } catch(_){} }, 250);
+                    if (typeof window.__updateAiViewport === 'function') window.__updateAiViewport();
                 });
             }
-            // Для журнала — обновляем список
             if (name === 'log') {
                 renderLog();
             }
         }
 
-        // Управление кнопкой "назад" через history
         if (name !== 'home') {
             try { history.pushState({ screen: name }, ''); } catch(_) {}
         }
@@ -215,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (navigator.vibrate) { try { navigator.vibrate(8); } catch(_){} }
 
             if (action === currentScreen) {
-                // Повторный тап по активной вкладке — скролл наверх
                 if (action === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (action === 'log') window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (action === 'ai') aiMessages.scrollTo({ top: aiMessages.scrollHeight, behavior: 'smooth' });
@@ -293,6 +280,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== AI TRAINER ========== */
     let aiHistory = getAiHistory();
+    let aiBusy = false;
+
     function renderAiHistory() {
         aiMessages.innerHTML = '';
         if (aiHistory.length === 0) {
@@ -301,6 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
             aiHistory.forEach(msg => addMessageToDOM(msg.role, msg.content));
         }
     }
+
     function addMessageToDOM(role, content) {
         const div = document.createElement('div');
         div.classList.add('ai-message');
@@ -308,20 +298,39 @@ document.addEventListener('DOMContentLoaded', function() {
         div.textContent = content;
         aiMessages.appendChild(div);
         aiMessages.scrollTop = aiMessages.scrollHeight;
+        return div;
     }
+
     function addMessage(role, content) {
         aiHistory.push({ role, content });
         saveAiHistory(aiHistory);
         addMessageToDOM(role, content);
     }
 
+    function showTypingIndicator() {
+        removeTypingIndicator();
+        const div = document.createElement('div');
+        div.id = 'typingIndicator';
+        div.classList.add('ai-message', 'ai-message--bot', 'ai-message--typing');
+        div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+        aiMessages.appendChild(div);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+    }
+    function removeTypingIndicator() {
+        const el = document.getElementById('typingIndicator');
+        if (el) el.remove();
+    }
+
     async function sendToAI(userMessage) {
+        if (aiBusy) return;
         const apiKey = getApiKey();
         if (!apiKey) {
             addMessage('assistant', 'API-ключ не указан. Откройте «Ещё → Настройки» и вставьте ключ с openrouter.ai/keys.');
             return;
         }
         addMessage('user', userMessage);
+        aiBusy = true;
+        showTypingIndicator();
 
         const systemPrompt = `Ты — персональный фитнес-тренер в приложении "Домашний фитнес". 
 Отвечай кратко, полезно и мотивирующе на русском языке.
@@ -332,7 +341,7 @@ ${buildProgramDescription()}
 
 ${buildWorkoutHistoryDescription()}
 
-Учитывай эти данные при ответах: давай советы по прогрессии, технике, отдыху, изменению веса, питанию. 
+Учитывай эти данные при ответах: давай советы по технике, отдыху, изменению веса, питанию. 
 Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.
 Если просят список упражнений — перечисляй их по дням, кратко и структурированно.`;
 
@@ -354,6 +363,8 @@ ${buildWorkoutHistoryDescription()}
             let data = null;
             try { data = await response.json(); } catch (e) { data = null; }
 
+            removeTypingIndicator();
+
             if (response.ok && data) {
                 const choice = data.choices && data.choices[0];
                 const message = choice && choice.message;
@@ -370,15 +381,19 @@ ${buildWorkoutHistoryDescription()}
                 addMessage('assistant', `Ошибка API: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
             }
         } catch (error) {
+            removeTypingIndicator();
             addMessage('assistant', `Ошибка сети: ${error.message}.`);
+        } finally {
+            aiBusy = false;
         }
     }
 
     if (aiForm) aiForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = aiInput.value.trim();
-        if (!text) return;
+        if (!text || aiBusy) return;
         aiInput.value = '';
+        aiInput.style.height = '';
         sendToAI(text);
     });
 
@@ -391,6 +406,41 @@ ${buildWorkoutHistoryDescription()}
             alert(val ? 'Ключ сохранён.' : 'Ключ удалён.');
         });
     }
+
+    /* ========== KEYBOARD / VISUAL VIEWPORT (как в Telegram) ========== */
+    function setupAiKeyboard() {
+        const vv = window.visualViewport;
+        if (!vv || !aiScreenEl) return;
+
+        function update() {
+            if (currentScreen !== 'ai') {
+                aiScreenEl.classList.remove('is-keyboard-open');
+                aiScreenEl.style.height = '';
+                aiScreenEl.style.top = '';
+                return;
+            }
+            const keyboardOpen = (window.innerHeight - vv.height) > 120;
+            if (keyboardOpen) {
+                aiScreenEl.classList.add('is-keyboard-open');
+                aiScreenEl.style.height = vv.height + 'px';
+                aiScreenEl.style.top = vv.offsetTop + 'px';
+                // Держим скролл сообщений внизу
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            } else {
+                aiScreenEl.classList.remove('is-keyboard-open');
+                aiScreenEl.style.height = '';
+                aiScreenEl.style.top = '';
+            }
+        }
+        vv.addEventListener('resize', update);
+        vv.addEventListener('scroll', update);
+        window.__updateAiViewport = update;
+
+        // При фокусе на поле — сразу подгоняем
+        aiInput.addEventListener('focus', () => setTimeout(update, 120));
+        aiInput.addEventListener('blur', () => setTimeout(update, 120));
+    }
+    setupAiKeyboard();
 
     /* ========== STATE ========== */
     let currentView = 'A';
@@ -707,13 +757,6 @@ ${buildWorkoutHistoryDescription()}
         [...dayTabs.querySelectorAll('.tab')].forEach(t=>t.classList.toggle('is-active', t.dataset.view===currentView));
         scrollToTab(currentView);
     }
-    function renderBanner() {
-        if (['A','B','C'].includes(currentView)) {
-            const msg = checkProgression(currentView);
-            if (msg) { progressionBanner.hidden=false; progressionText.textContent=msg; return; }
-        }
-        progressionBanner.hidden=true;
-    }
     function exerciseCard(ex, exIdx, dayKey) {
         const done = sessionDone[dayKey].has(exIdx);
         const repsText = ex.mode==='time'?(ex.durationLabel||`${ex.duration} сек`):ex.repsLabel;
@@ -754,7 +797,7 @@ ${buildWorkoutHistoryDescription()}
             });
         });
     }
-    function renderView() { renderTabs(); renderBanner(); renderDay(currentView); }
+    function renderView() { renderTabs(); renderDay(currentView); }
     function renderLog() {
         const log = getLog();
         if (!log.length) { logList.innerHTML=`<p class="log-empty">Пока пусто. Заверши первую тренировку — запись появится здесь.</p>`; return; }
@@ -825,8 +868,6 @@ ${buildWorkoutHistoryDescription()}
         qualityModal.hidden = true;
         renderView();
     });
-    document.getElementById('rulesToggle').addEventListener('click', ()=>document.getElementById('rulesCard').classList.toggle('is-open'));
-    document.getElementById('dismissBanner').addEventListener('click', ()=>{ progressionBanner.hidden=true; });
 
     if (themeSelect) themeSelect.addEventListener('change', e=>{
         localStorage.setItem('theme', e.target.value);
@@ -854,16 +895,13 @@ ${buildWorkoutHistoryDescription()}
         }
         if (currentScreen !== 'home') {
             showScreen('home');
-            // showScreen сам не пушит history для 'home', но нам нужно
-            // откатить текущее состояние (уже сделано браузером)
             return;
         }
-        // На главном экране — ничего не делаем, браузер выйдет из приложения
     });
 
-    // Начальное состояние history
     history.replaceState({ screen: 'home' }, '');
 
     /* ========== INIT ========== */
     renderView();
+    renderAiHistory();
 });
