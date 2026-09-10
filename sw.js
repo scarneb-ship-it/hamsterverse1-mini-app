@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ironplan-v2';
+const CACHE_NAME = 'ironplan-v20';
 const urlsToCache = [
   '.',
   'index.html',
