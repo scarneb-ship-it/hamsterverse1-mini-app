@@ -1,21 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== DATA ========== */
-    const WARMUP = {
-        title: 'Разминка', subtitle: '5 минут перед каждым днём', totalSeconds: 5 * 60,
-        items: [
-            { num: '47', name: 'Круги руками', mode: 'time', duration: 30 },
-            { num: '50', name: 'Вращение руками', mode: 'time', duration: 30 },
-            { num: '85', name: 'Поза кошки-коровы', mode: 'reps', repsLabel: '10 повторов' },
-            { num: '15', name: 'Приседания (без веса)', mode: 'reps', repsLabel: '10 повторов' },
-            { num: '11', name: 'Отжимание от стены', mode: 'reps', repsLabel: '10 раз' }
-        ]
-    };
-    const COOLDOWN = {
-        title: 'Заминка', subtitle: '3 минуты после каждого дня', totalSeconds: 3 * 60,
-        numbersText: '116–122, 142–143, 169–171',
-        note: 'Выберите любые растяжки из этого списка и удерживайте их всю заминку.'
-    };
     const DAYS = {
         A: {
             title: 'День A · Силовая база', subtitle: 'Турник + гантели · развиваем силу спины, ног и плеч',
@@ -79,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'ai_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
-    // Только одна модель
     const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
     const DEFAULT_API_KEY = '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';
 
@@ -117,12 +101,9 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(AI_HISTORY_STORAGE, JSON.stringify(history));
     }
 
-    // Функция формирования полного описания программы для ИИ
     function buildProgramDescription() {
         const parts = [];
         parts.push('== ПРОГРАММА ТРЕНИРОВОК ==');
-        parts.push(`Разминка (${WARMUP.totalSeconds/60} мин): ${WARMUP.items.map(it => `${it.name} (${it.mode==='time'?it.duration+' сек':it.repsLabel})`).join(', ')}`);
-        parts.push('');
         Object.keys(DAYS).forEach(dayKey => {
             const day = DAYS[dayKey];
             parts.push(`День ${dayKey}: ${day.title}`);
@@ -144,11 +125,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             parts.push('');
         });
-        parts.push(`Заминка (${COOLDOWN.totalSeconds/60} мин): растяжки ${COOLDOWN.numbersText}.`);
         return parts.join('\n');
     }
 
-    // Функция формирования истории тренировок для ИИ
     function buildWorkoutHistoryDescription() {
         const log = getLog();
         if (!log.length) return 'История тренировок пока пуста.';
@@ -215,35 +194,54 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ========== VOICE ========== */
     let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
     const synth = window.speechSynthesis;
+    let selectedVoice = null;
+
+    function pickVoice() {
+        if (!synth) return;
+        const voices = synth.getVoices();
+        if (!voices || !voices.length) return;
+
+        // Приоритет — максимально приятные и человечные ru-RU голоса
+        const priorities = [
+            v => v.lang === 'ru-RU' && /google/i.test(v.name) && /female|женский/i.test(v.name),
+            v => v.lang === 'ru-RU' && /google/i.test(v.name),
+            v => v.lang === 'ru-RU' && /(milena|milena|alena|alyona|katya|yuri|dmitri)/i.test(v.name),
+            v => v.lang === 'ru-RU' && !v.localService,
+            v => v.lang === 'ru-RU',
+            v => v.lang && v.lang.toLowerCase().startsWith('ru'),
+            v => v.default
+        ];
+        for (const test of priorities) {
+            const found = voices.find(test);
+            if (found) { selectedVoice = found; return; }
+        }
+    }
+
+    if (synth) {
+        pickVoice();
+        synth.onvoiceschanged = pickVoice;
+        // Прогреваем движок — некоторые голоса (Google) появляются асинхронно
+        setTimeout(pickVoice, 200);
+        setTimeout(pickVoice, 1000);
+    }
+
     function speak(text, priority = false) {
-        if (!voiceEnabled) return;
+        if (!voiceEnabled || !synth || !text) return;
         if (synth.speaking && !priority) return;
         if (synth.speaking && priority) synth.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ru-RU';
-        utter.rate = 1.0;
-        utter.pitch = 1.0;
+        if (selectedVoice) utter.voice = selectedVoice;
+        utter.rate = 0.98;
+        utter.pitch = 1.05;
         utter.volume = 1.0;
         synth.speak(utter);
-    }
-    function announceStep(step) {
-        if (!voiceEnabled) return;
-        let message = '';
-        if (step.kind === 'work') {
-            message = `${step.exName}. ${step.setLabel}. `;
-            if (step.duration) message += `Длительность ${step.repsLabel}.`;
-            else message += `Повторения: ${step.repsLabel}.`;
-        } else if (step.kind === 'rest') {
-            message = `Отдых ${step.repsLabel}.`;
-        }
-        speak(message);
     }
     function announceCountdown(seconds) {
         if (!voiceEnabled || seconds > 5 || seconds < 1) return;
         speak(String(seconds), true);
     }
 
-    // Инициализация UI настроек
     voiceToggleCheckbox.checked = voiceEnabled;
     themeSelect.value = localStorage.getItem('theme') || 'system';
     applyTheme(themeSelect.value);
@@ -296,7 +294,6 @@ ${historyInfo}
 Учитывай эти данные при ответах: давай советы по прогрессии, технике, отдыху, изменению веса, питанию. 
 Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.`;
 
-        // Используем только одну модель
         const model = FREE_MODELS[0];
         try {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -337,7 +334,6 @@ ${historyInfo}
         }
     }
 
-    // Обработчики ИИ
     aiTrainerBtn.addEventListener('click', () => {
         aiModal.hidden = false;
         renderAiHistory();
@@ -356,9 +352,10 @@ ${historyInfo}
 
     /* ========== STATE ========== */
     let currentView = 'A';
-    const sessionDone = { A: new Set(), B: new Set(), C: new Set(), warmup: new Set(), cooldown: false };
+    const sessionDone = { A: new Set(), B: new Set(), C: new Set() };
     let steps = [], stepIdx = 0, sessionType = null, timeLeft = 0, totalTime = 0, ticking = false, intervalId = null;
-    const dayOrder = ['warmup', 'A', 'B', 'C', 'cooldown'];
+    let currentPhase = 'idle'; // 'prep' | 'work' | 'rest'
+    const dayOrder = ['A', 'B', 'C'];
 
     /* ========== AUDIO / HAPTICS ========== */
     let audioCtx = null;
@@ -433,36 +430,42 @@ ${historyInfo}
         }
         return list;
     }
-    function buildFreeformSteps(kind) {
-        if (kind==='warmup') return WARMUP.items.map(it=>({kind:'work',exNum:it.num,exName:it.name,exIdx:0,totalEx:WARMUP.items.length,setLabel:'Разминка',duration:it.mode==='time'?it.duration:null,repsLabel:it.mode==='time'?`${it.duration} сек`:it.repsLabel,note:null}));
-        return [{kind:'work',exNum:'Z',exName:'Заминка · растяжка',exIdx:0,totalEx:1,setLabel:'Свободный выбор растяжек',duration:COOLDOWN.totalSeconds,repsLabel:`${COOLDOWN.totalSeconds/60} мин`,note:`${COOLDOWN.numbersText}. ${COOLDOWN.note}`}];
-    }
 
     /* ========== SESSION ENGINE ========== */
     function startSession(type, steplist, startIdx=0) {
         sessionType=type; steps=steplist; stepIdx=startIdx;
         player.hidden=false; document.body.style.overflow='hidden';
-        speak(`Начинаем ${sessionTitle()}`);
         setupStep();
     }
+
     function startTimer() {
-        ticking=true;
-        intervalId=setInterval(()=>{
+        ticking = true;
+        intervalId = setInterval(() => {
             timeLeft--;
-            if (timeLeft<=3 && timeLeft>0) {
-                beep(440,0.06);
-                if (steps[stepIdx].kind !== 'rest') announceCountdown(timeLeft);
+            const step = steps[stepIdx];
+
+            // Объявление половины отдыха
+            if (step.kind === 'rest' && !step.halfAnnounced && totalTime >= 20 &&
+                timeLeft > 0 && timeLeft <= Math.floor(totalTime / 2)) {
+                step.halfAnnounced = true;
+                speak('Осталась половина отдыха', true);
             }
-            if (timeLeft<=0) {
+
+            if (timeLeft <= 5 && timeLeft > 0) {
+                beep(440,0.06);
+                if (step.kind !== 'rest') announceCountdown(timeLeft);
+            }
+            if (timeLeft <= 0) {
                 clearInterval(intervalId); ticking=false;
                 beep(880,0.18); haptic([120,60,120]);
-                markExerciseProgress(steps[stepIdx]);
+                markExerciseProgress(step);
                 nextStep();
                 return;
             }
             updateRing();
         },1000);
     }
+
     function setupStep() {
         clearInterval(intervalId); ticking=false;
         const step = steps[stepIdx];
@@ -471,7 +474,6 @@ ${historyInfo}
         ring.classList.remove('is-rest','is-go','pulse');
         ring.classList.add(step.kind==='rest'?'is-rest':'is-go');
         playerCrumbs.textContent = `${sessionTitle()} · ${stepIdx+1}/${steps.length}`;
-        // playerNum не используется
         playerName.textContent = step.exName;
         playerMeta.textContent = step.setLabel+(step.repsLabel?` · ${step.repsLabel}`:'');
         if (step.note) { playerNote.hidden=false; playerNote.textContent=step.note; }
@@ -479,9 +481,7 @@ ${historyInfo}
         if (step.image) { playerImage.src=step.image; playerImage.alt=step.exName; playerImageContainer.hidden=false; }
         else { playerImageContainer.hidden=true; }
 
-        ringPhase.textContent = step.kind==='rest'?'ОТДЫХ':(step.duration?'РАБОТА':'ГОТОВ');
-        announceStep(step);
-
+        // Блок "Следующее упражнение"
         const nextExerciseBlock = document.getElementById('nextExercise');
         const nextExerciseName = document.getElementById('nextExerciseName');
         if (step.kind === 'rest') {
@@ -499,29 +499,122 @@ ${historyInfo}
             nextExerciseBlock.hidden = true;
         }
 
-        if (step.duration) {
-            totalTime=step.duration; timeLeft=step.duration;
-            updateRing();
-            if (step.kind==='rest') {
-                mainActionBtn.textContent='Пауза'; skipBtn.hidden=false;
-                restAdjust.hidden=false;
-                startTimer();
-            } else {
-                mainActionBtn.textContent='Старт'; skipBtn.hidden=false;
-                restAdjust.hidden=true;
-            }
+        if (step.kind === 'work') {
+            if (shouldPrep(step)) startPrep(step);
+            else beginWork(step);
         } else {
-            totalTime=0; timeLeft=0;
-            ringTime.textContent='✓'; ringOuter.style.setProperty('--progress','360deg');
-            mainActionBtn.textContent='Готово'; skipBtn.hidden=false;
-            restAdjust.hidden=true;
+            startRest(step);
         }
     }
+
+    // Делаем отсчёт перед новым упражнением (не между сторонами одного упр.)
+    function shouldPrep(step) {
+        if (stepIdx === 0) return true;
+        const prev = steps[stepIdx - 1];
+        if (!prev) return true;
+        if (prev.kind === 'work' && prev.exName === step.exName) return false;
+        return true;
+    }
+
+    function startPrep(step) {
+        currentPhase = 'prep';
+        let prepLeft = 5;
+        timeLeft = prepLeft; totalTime = prepLeft;
+
+        ringPhase.textContent = 'ПРИГОТОВЬСЯ';
+        ringTime.textContent = String(prepLeft);
+        ringOuter.style.setProperty('--progress', '360deg');
+        mainActionBtn.textContent = 'Начать сейчас';
+        skipBtn.hidden = false;
+        skipBtn.textContent = 'Пропустить';
+        restAdjust.hidden = true;
+
+        speak(`Приготовься. ${step.exName}.`, true);
+
+        ticking = true;
+        intervalId = setInterval(() => {
+            prepLeft--;
+            if (prepLeft > 0) {
+                ringTime.textContent = String(prepLeft);
+                ringOuter.style.setProperty('--progress', `${(prepLeft/5)*360}deg`);
+                speak(String(prepLeft), true);
+            } else {
+                clearInterval(intervalId);
+                ticking = false;
+                speak('Начали!', true);
+                beep(880, 0.15);
+                haptic([80, 40, 80]);
+                beginWork(step);
+            }
+        }, 1000);
+    }
+
+    function beginWork(step) {
+        currentPhase = 'work';
+        ring.classList.remove('is-rest','pulse');
+        ring.classList.add('is-go');
+        if (step.duration) {
+            ringPhase.textContent = 'РАБОТА';
+            timeLeft = step.duration; totalTime = step.duration;
+            updateRing();
+            mainActionBtn.textContent = 'Пауза';
+            skipBtn.hidden = false;
+            skipBtn.textContent = 'Пропустить';
+            restAdjust.hidden = true;
+            startTimer();
+        } else {
+            ringPhase.textContent = 'РАБОТА';
+            ringTime.textContent = '✓';
+            ringOuter.style.setProperty('--progress', '360deg');
+            mainActionBtn.textContent = 'Готово';
+            skipBtn.hidden = false;
+            skipBtn.textContent = 'Пропустить';
+            restAdjust.hidden = true;
+        }
+    }
+
+    function startRest(step) {
+        currentPhase = 'rest';
+        ringPhase.textContent = 'ОТДЫХ';
+        if (step.duration) {
+            timeLeft = step.duration; totalTime = step.duration;
+            step.halfAnnounced = false;
+            updateRing();
+            mainActionBtn.textContent = 'Пауза';
+            skipBtn.hidden = false;
+            skipBtn.textContent = 'Пропустить';
+            restAdjust.hidden = false;
+            announceRest(step);
+            startTimer();
+        } else {
+            ringTime.textContent = '✓';
+            ringOuter.style.setProperty('--progress', '360deg');
+            mainActionBtn.textContent = 'Готово';
+            skipBtn.hidden = false;
+            restAdjust.hidden = true;
+        }
+    }
+
+    // Озвучка отдыха: название следующего упражнения, если оно отличается
+    function announceRest(step) {
+        if (!voiceEnabled) return;
+        let message = `Отдых ${step.repsLabel}. `;
+        const prevWork = [...steps.slice(0, stepIdx)].reverse().find(s => s.kind === 'work');
+        for (let i = stepIdx + 1; i < steps.length; i++) {
+            if (steps[i].kind === 'work') {
+                if (!prevWork || steps[i].exName !== prevWork.exName) {
+                    message += `Следующее упражнение: ${steps[i].exName}.`;
+                }
+                break;
+            }
+        }
+        speak(message, true);
+    }
+
     function sessionTitle() {
-        if (sessionType==='warmup') return 'Разминка';
-        if (sessionType==='cooldown') return 'Заминка';
         return DAYS[sessionType].title;
     }
+
     function updateRing() {
         const mins = Math.floor(timeLeft/60), secs = timeLeft%60;
         ringTime.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
@@ -540,6 +633,15 @@ ${historyInfo}
     }
     function toggleTimer() {
         const step = steps[stepIdx];
+        // Фаза подготовки — кнопка пропускает отсчёт
+        if (currentPhase === 'prep') {
+            clearInterval(intervalId);
+            ticking = false;
+            if (synth) synth.cancel();
+            beep(880, 0.15);
+            beginWork(step);
+            return;
+        }
         if (!step.duration) {
             markExerciseProgress(step); beep(660,0.08); nextStep(); return;
         }
@@ -555,24 +657,22 @@ ${historyInfo}
     function markExerciseProgress(step) {
         if (step.kind!=='work') return;
         if (sessionType==='A'||sessionType==='B'||sessionType==='C') sessionDone[sessionType].add(step.exIdx);
-        else if (sessionType==='warmup') sessionDone.warmup.add(step.exIdx+'-'+step.exNum);
     }
     function closePlayer() {
         clearInterval(intervalId); ticking=false;
         player.hidden=true; document.body.style.overflow='';
         restAdjust.hidden=true;
-        if (synth.speaking) synth.cancel();
+        if (synth && synth.speaking) synth.cancel();
     }
     function finishSession() {
-        speak('Тренировка завершена. Отличная работа!');
+        speak('Тренировка завершена. Отличная работа!', true);
         closePlayer();
         if (sessionType==='A'||sessionType==='B'||sessionType==='C') { 
             qualityModal.hidden=false; 
             qualityModal.dataset.day=sessionType;
-            document.getElementById('workoutWeight').value = ''; // сброс поля веса
+            document.getElementById('workoutWeight').value = '';
         }
-        else if (sessionType==='cooldown') { sessionDone.cooldown=true; renderView(); }
-        else renderView();
+        renderView();
     }
 
     /* ========== RENDERING ========== */
@@ -631,25 +731,7 @@ ${historyInfo}
             });
         });
     }
-    function renderFreeform(kind) {
-        const meta = kind==='warmup'?WARMUP:COOLDOWN;
-        let list='';
-        if (kind==='warmup') {
-            list = WARMUP.items.map((it,i)=>{
-                const done = sessionDone.warmup.has(i+'-'+it.num);
-                const label = it.mode==='time'?`${it.duration} сек`:it.repsLabel;
-                return `<div class="free-item ${done?'is-done':''}"><span class="free-item__name">${it.name}</span><span class="free-item__time">${label}</span></div>`;
-            }).join('');
-        } else {
-            list = `<div class="free-item"><span class="free-item__name">Растяжки на выбор: ${COOLDOWN.numbersText}</span><span class="free-item__time">${COOLDOWN.totalSeconds/60} мин</span></div>`;
-        }
-        mainContent.innerHTML = `<div class="section-head"><div><h2>${meta.title}</h2><p>${meta.subtitle}</p></div></div>
-            <div class="free-list" style="display:flex;flex-direction:column;gap:8px;">${list}</div>
-            <div class="timer-box"><p>${kind==='warmup'?'Пройдите все упражнения подряд с таймером — точные секунды из плана.':COOLDOWN.note}</p>
-            <button class="btn btn--primary" id="startFreeBtn">Начать таймер · ${meta.totalSeconds/60} мин</button></div>`;
-        document.getElementById('startFreeBtn').addEventListener('click', ()=>startSession(kind, buildFreeformSteps(kind)));
-    }
-    function renderView() { renderTabs(); renderBanner(); if (currentView==='warmup') renderFreeform('warmup'); else if (currentView==='cooldown') renderFreeform('cooldown'); else renderDay(currentView); }
+    function renderView() { renderTabs(); renderBanner(); renderDay(currentView); }
     function renderLog() {
         const log = getLog();
         if (!log.length) { logList.innerHTML=`<p class="log-empty">Пока пусто. Заверши первую тренировку — запись появится здесь.</p>`; return; }
@@ -731,7 +813,8 @@ ${historyInfo}
     voiceToggleCheckbox.addEventListener('change', e=>{
         voiceEnabled = e.target.checked;
         localStorage.setItem('voiceEnabled', voiceEnabled);
-        if (!voiceEnabled && synth.speaking) synth.cancel();
+        if (!voiceEnabled && synth && synth.speaking) synth.cancel();
+        else if (voiceEnabled) speak('Голосовые подсказки включены', true);
     });
 
     renderView();
