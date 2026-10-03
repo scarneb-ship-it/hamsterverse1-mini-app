@@ -3,79 +3,61 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ========== DATA ========== */
     const DAYS = {
         A: {
-            title: 'День A · Верх + осанка (тяговый)',
-            subtitle: 'Турник, тяги, лопатки. Фокус на нижнюю трапецию, ромбовидные и переднюю зубчатую. Качество важнее веса.',
+            title: 'День A · Верх (тяговый)',
+            subtitle: 'Турник, тяги, лопатки. Фокус: нижняя трапеция, ромбовидные, передняя зубчатая.',
             exercises: [
-                { num: 'BR', name: 'Дыхание 360° (разминка)', sets: 2, mode: 'time', duration: 60, durationLabel: '60 сек', rest: 30, restLabel: '30 сек', tech: 'Лёжа, руки на рёбрах. Вдох — рёбра расширяются в стороны, живот расслаблен. Выдох — рёбра опускаются.' },
-                { num: 'CC', name: 'Кошка-корова (разминка)', sets: 2, mode: 'reps', repsLabel: '8–10', rest: 30, restLabel: '30 сек', tech: 'Плавно прогибай и округляй спину, синхронно с дыханием.' },
-                { num: 'TE', name: 'Thoracic extension over towel (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Валик под верхнюю спину. Руки за голову. Мягко разгибайся, не прогибай поясницу.' },
-                { num: 'WS', name: 'Скольжение руками по стене (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Затылок, верх спины и таз у стены. Локти и запястья скользят, не отрываясь. Рёбра вниз.' },
+                { num: 'TE', name: 'Thoracic extension over towel (разминка)', sets: 1, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'Валик под верхнюю спину. Руки за голову. Мягко разгибайся, не прогибай поясницу.' },
+                { num: 'SPU', name: 'Scapular pull-ups (активация)', sets: 2, mode: 'reps', repsLabel: '8', rest: 30, restLabel: '30 сек', tech: 'Вис на турнике, руки прямые. Тяни лопатки вниз к тазу. Держи 1 сек внизу. Локти не сгибаются.' },
 
-                { num: 'SPU', name: 'Scapular pull-ups', sets: 3, mode: 'reps', repsLabel: '8–10', rest: 60, restLabel: '60 сек', tech: 'Вис на турнике, руки прямые. Тяни лопатки вниз к тазу, как будто хочешь положить их в задние карманы. Держи 1 сек внизу. Локти не сгибаются.' },
-                { num: 'CT', name: 'Chin tucks', sets: 3, mode: 'reps', repsLabel: '10', rest: 45, restLabel: '45 сек', tech: 'Мягко тяни затылок назад, как будто упираешься в стену. Пауза 2 сек в конце. Плечи расслаблены.' },
-                { num: 'PU', name: 'Подтягивания / негативы', sets: 4, mode: 'reps', repsLabel: '5–8 (RPE 7)', rest: 120, restLabel: '120 сек', tech: 'Начни с активного виса: лопатки вниз. Тяни локти вниз, не подбородок вверх. Не выдвигай голову вперёд. Если 8+ чисто — добавь вес.' },
-                { num: 'ROW1', name: 'Тяга гантели одной рукой в наклоне (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 90, restLabel: '90 сек', tech: 'Колено и рука на опоре, спина прямая. Локоть к поясу, пауза 1 сек, лопатка вниз и к позвоночнику. Не разворачивай корпус.' },
-                { num: 'BPA', name: 'Band pull-apart', sets: 3, mode: 'reps', repsLabel: '15–20', rest: 45, restLabel: '45 сек', tech: 'Резинка перед собой, руки прямые. Разводи руки в стороны, своди лопатки, не выгибай поясницу. Медленно возвращай.' },
-                { num: 'BFP', name: 'Band face pull', sets: 3, mode: 'reps', repsLabel: '15', rest: 45, restLabel: '45 сек', tech: 'Резинка на уровне лица. Тяни к лицу, локти в стороны, лопатки вниз. В конце — сведи лопатки.' },
-                { num: 'PP', name: 'Отжимания с протракцией', sets: 3, mode: 'reps', repsLabel: '10–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке оттолкнись дальше, округли верх спины. Двигаются именно лопатки, не поясница.' },
-                { num: 'PTW', name: 'Prone Y + T + W + Blackburn', sets: 2, mode: 'reps', repsLabel: '8–10 каждое', rest: 60, restLabel: '60 сек', tech: 'Лёжа на животе. Y — руки вперёд под углом, T — в стороны, W — локти согнуты, Blackburn — большие пальцы вверх. Шея нейтрально, голову не поднимай.' },
-                { num: 'ER', name: 'Внешняя ротация лёжа на боку (левая / правая)', sets: 3, mode: 'reps', repsLabel: '12–15 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Локоть прижат к боку. Вращай предплечье наружу медленно, без рывков.' },
-                { num: 'FW', name: "Farmer's walk", sets: 3, mode: 'time', duration: 35, durationLabel: '30–40 сек', rest: 60, restLabel: '60 сек', tech: 'Две гантели в руках. Плечи вниз и назад, рёбра вниз, иди ровно, смотри вперёд.' },
-                { num: 'DB', name: 'Dead bug (левая / правая)', sets: 3, mode: 'reps', repsLabel: '10 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Поясница прижата к полу. Медленно выпрямляй противоположные руку и ногу.' },
-                { num: 'PL', name: 'Планка', sets: 3, mode: 'time', duration: 50, durationLabel: '45–60 сек', rest: 45, restLabel: '45 сек', tech: 'Рёбра вниз, ягодицы сжаты. Тело — прямая линия. Не проваливайся в пояснице.' }
+                { num: 'PU', name: 'Подтягивания / негативы', sets: 4, mode: 'reps', repsLabel: '5–8 (RPE 7)', rest: 120, restLabel: '120 сек', tech: 'Начни с активного виса: лопатки вниз. Тяни локти вниз, не подбородок вверх. Не выдвигай голову вперёд.' },
+                { num: 'ROW1', name: 'Тяга гантели одной рукой в наклоне (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 90, restLabel: '90 сек', tech: 'Колено и рука на опоре, спина прямая. Локоть к поясу, пауза 1 сек, лопатка вниз и к позвоночнику.' },
+                { num: 'PP', name: 'Отжимания с протракцией', sets: 3, mode: 'reps', repsLabel: '10–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке оттолкнись дальше, округли верх спины. Двигаются именно лопатки.' },
+
+                { num: 'BFP', name: 'Band face pull', sets: 3, mode: 'reps', repsLabel: '15', rest: 45, restLabel: '45 сек', tech: 'Резинка на уровне лица. Тяни к лицу, локти в стороны, лопатки вниз.' },
+                { num: 'CT', name: 'Chin tucks', sets: 3, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Мягко тяни затылок назад, пауза 2 сек в конце. Плечи расслаблены.' },
+                { num: 'PTW', name: 'Prone Y + T + W', sets: 2, mode: 'reps', repsLabel: '8 каждое', rest: 45, restLabel: '45 сек', tech: 'Лёжа на животе. Y — руки вперёд под углом, T — в стороны, W — локти согнуты. Шея нейтрально.' }
             ]
         },
         B: {
             title: 'День B · Ноги + кор',
-            subtitle: 'Приседы, тяги, ягодицы · стабильный кор и антиротация.',
+            subtitle: 'Приседы, тяги, ягодицы · стабильный кор.',
             exercises: [
-                { num: 'CC', name: 'Кошка-корова (разминка)', sets: 2, mode: 'reps', repsLabel: '8–10', rest: 30, restLabel: '30 сек', tech: 'Плавно прогибай и округляй спину, синхронно с дыханием.' },
-                { num: 'GM', name: 'Ягодичный мостик (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'В верхней точке сильно сожми ягодицы. Рёбра вниз, не выгибай поясницу.' },
-                { num: 'TE', name: 'Thoracic extension over towel (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Валик под верхнюю спину. Руки за голову. Мягко разгибайся.' },
+                { num: 'GM', name: 'Ягодичный мостик (разминка)', sets: 1, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'В верхней точке сильно сожми ягодицы. Рёбра вниз, не выгибай поясницу.' },
 
                 { num: 'SQ', name: 'Приседания с гантелью у груди', sets: 4, mode: 'reps', repsLabel: '8–10 (RPE 7)', rest: 120, restLabel: '120 сек', tech: 'Колени по носкам, спина прямая, грудь вверх. Пятки не отрываются. Темп 3-1-1.' },
-                { num: 'BSS', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 90, restLabel: '90 сек', tech: 'Опора на заднюю ногу минимальна. Колено не заходит за носок. Таз не разворачивается.' },
                 { num: 'RDL', name: 'Румынская тяга с гантелями', sets: 3, mode: 'reps', repsLabel: '10–12', rest: 90, restLabel: '90 сек', tech: 'Таз назад, спина прямая. Чувствуй растяжение в бицепсе бедра, не округляй поясницу.' },
+                { num: 'BSS', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 90, restLabel: '90 сек', tech: 'Опора на заднюю ногу минимальна. Колено не заходит за носок. Таз не разворачивается.' },
                 { num: 'SLB', name: 'Мостик на одной ноге (правая / левая)', sets: 3, mode: 'reps', repsLabel: '10–12 на сторону', sides: true, rest: 60, restLabel: '60 сек', tech: 'Не разворачивай таз. В верхней точке — сильное сжатие ягодицы.' },
-                { num: 'BD', name: 'Bird dog (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Тянись рукой вперёд, ногой назад. Таз не вращается. Держи 2 сек в верхней точке.' },
-                { num: 'SP', name: 'Планка на боку (правая / левая)', sets: 3, mode: 'time', duration: 35, durationLabel: '30–40 сек', sides: true, rest: 45, restLabel: '45 сек', tech: 'Без прогиба в пояснице. Тело — прямая линия от головы до стоп.' },
+
                 { num: 'DB', name: 'Dead bug (левая / правая)', sets: 3, mode: 'reps', repsLabel: '10 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Поясница прижата к полу. Медленно выпрямляй противоположные руку и ногу.' },
-                { num: 'PAL', name: 'Pallof press (левая / правая)', sets: 3, mode: 'reps', repsLabel: '10 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Резинка закреплена сбоку на уровне груди. Выжимай руки вперёд, сопротивляясь вращению. Кор напряжён, таз не разворачивается.' }
+                { num: 'SP', name: 'Планка на боку (правая / левая)', sets: 3, mode: 'time', duration: 35, durationLabel: '30–40 сек', sides: true, rest: 45, restLabel: '45 сек', tech: 'Без прогиба в пояснице. Тело — прямая линия от головы до стоп.' },
+                { num: 'PL', name: 'Планка', sets: 3, mode: 'time', duration: 45, durationLabel: '45 сек', rest: 45, restLabel: '45 сек', tech: 'Рёбра вниз, ягодицы сжаты. Тело — прямая линия.' }
             ]
         },
         C: {
-            title: 'День C · Верх + осанка (жимовой)',
-            subtitle: 'Жимовые + лопатки + зубчатая. Укрепляем переднюю цепь без перегрузки шеи.',
+            title: 'День C · Верх (жимовой)',
+            subtitle: 'Жимы + лопатки + зубчатая. Без перегрузки шеи и поясницы.',
             exercises: [
-                { num: 'BR', name: 'Дыхание 360° (разминка)', sets: 2, mode: 'time', duration: 60, durationLabel: '60 сек', rest: 30, restLabel: '30 сек', tech: 'Лёжа, руки на рёбрах. Вдох — рёбра расширяются в стороны.' },
-                { num: 'WS', name: 'Скольжение руками по стене (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Затылок, верх спины и таз у стены. Локти и запястья скользят, не отрываясь.' },
                 { num: 'SWS', name: 'Serratus wall slide (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Руки на стене на уровне плеч. Протрагируй — оттолкнись от стены, округли верх спины. Двигаются лопатки, не поясница.' },
 
                 { num: 'SPL', name: 'Жим гантели одной рукой в полувыпаде (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 90, restLabel: '90 сек', tech: 'Колено на полу, таз нейтрально, рёбра вниз. Жми вверх, не выгибая поясницу и не выдвигая голову.' },
                 { num: 'PP', name: 'Отжимания с протракцией', sets: 4, mode: 'reps', repsLabel: '10–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке оттолкнись дальше, округли верх спины. Двигаются именно лопатки.' },
-                { num: 'BFP', name: 'Band face pull', sets: 3, mode: 'reps', repsLabel: '15–20', rest: 45, restLabel: '45 сек', tech: 'Резинка на уровне лица. Тяни к лицу, локти в стороны, лопатки вниз.' },
-                { num: 'BPA', name: 'Band pull-apart', sets: 3, mode: 'reps', repsLabel: '15–20', rest: 45, restLabel: '45 сек', tech: 'Резинка перед собой, руки прямые. Разводи руки в стороны, своди лопатки.' },
-                { num: 'PTW', name: 'Prone Y + T + W + Blackburn', sets: 3, mode: 'reps', repsLabel: '8–10 каждое', rest: 60, restLabel: '60 сек', tech: 'Лёжа на животе. Шея нейтрально, голову не поднимай.' },
-                { num: 'ER', name: 'Внешняя ротация лёжа на боку (левая / правая)', sets: 3, mode: 'reps', repsLabel: '12–15 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Локоть прижат к боку. Вращай предплечье наружу медленно.' },
-                { num: 'FW', name: "Farmer's walk", sets: 3, mode: 'time', duration: 35, durationLabel: '30–40 сек', rest: 60, restLabel: '60 сек', tech: 'Две гантели в руках. Плечи вниз и назад, рёбра вниз, иди ровно.' },
-                { num: 'PL', name: 'Планка', sets: 3, mode: 'time', duration: 50, durationLabel: '45–60 сек', rest: 45, restLabel: '45 сек', tech: 'Рёбра вниз, ягодицы сжаты. Тело — прямая линия.' }
+                { num: 'PU', name: 'Подтягивания / негативы', sets: 3, mode: 'reps', repsLabel: '5–8', rest: 90, restLabel: '90 сек', tech: 'Начни с активного виса: лопатки вниз. Тяни локти вниз. Не выдвигай голову вперёд.' },
+
+                { num: 'BFP', name: 'Band face pull', sets: 3, mode: 'reps', repsLabel: '15', rest: 45, restLabel: '45 сек', tech: 'Резинка на уровне лица. Тяни к лицу, локти в стороны, лопатки вниз.' },
+                { num: 'FW', name: "Farmer's walk", sets: 3, mode: 'time', duration: 35, durationLabel: '30–40 сек', rest: 60, restLabel: '60 сек', tech: 'Две гантели в руках. Плечи вниз и назад, рёбра вниз, иди ровно, смотри вперёд.' },
+                { num: 'CT', name: 'Chin tucks', sets: 3, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Мягко тяни затылок назад, пауза 2 сек. Плечи расслаблены.' },
+                { num: 'PTW', name: 'Prone Y + T + W', sets: 2, mode: 'reps', repsLabel: '8 каждое', rest: 45, restLabel: '45 сек', tech: 'Лёжа на животе. По 8 Y, T, W. Шея нейтрально, голову не поднимай.' }
             ]
         },
         D: {
-            title: 'День D · Ежедневная рутина осанки',
-            subtitle: '10–15 минут · делай каждый день, отдельно от силовых.',
+            title: 'День D · Мини-рутина осанки (4 мин)',
+            subtitle: 'Минимум для переобучения мозга. Делай каждый день или встрой в быт.',
             exercises: [
-                { num: 'BR', name: 'Дыхание 360°', sets: 2, mode: 'time', duration: 60, durationLabel: '60 сек', rest: 15, restLabel: '15 сек', tech: 'Лёжа, руки на рёбрах. Вдох — рёбра расширяются в стороны, живот расслаблен.' },
-                { num: 'CT', name: 'Chin tucks', sets: 3, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'Мягко потяни затылок назад, пауза 2 сек. Не кивай. Плечи расслаблены.' },
-                { num: 'WS', name: 'Скольжение руками по стене', sets: 2, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'Затылок, верх спины и таз у стены. Локти и запястья скользят, не отрываясь.' },
-                { num: 'SWS', name: 'Serratus wall slide', sets: 2, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'Руки на стене на уровне плеч. Протрагируй — округли верх спины, оттолкнись.' },
-                { num: 'PTW', name: 'Prone Y / T / W / Blackburn', sets: 2, mode: 'reps', repsLabel: '8 каждое', rest: 30, restLabel: '30 сек', tech: 'Лёжа на животе. По 8 повторений Y, T, W и Blackburn. Шея нейтрально.' },
-                { num: 'PEC', name: 'Растяжка грудных в дверном проёме (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек на сторону', sides: true, rest: 20, restLabel: '20 сек', tech: 'Локоть на уровне плеча. Мягко тянись вперёд, не выгибай поясницу.' },
-                { num: 'UT', name: 'Растяжка верхней трапеции (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек на сторону', sides: true, rest: 20, restLabel: '20 сек', tech: 'Мягко наклони голову в сторону, плечо тянется вниз. Без боли в шее.' },
-                { num: 'LV', name: 'Растяжка леватора лопатки (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек на сторону', sides: true, rest: 20, restLabel: '20 сек', tech: 'Опусти подбородок к груди, поверни голову к плечу. Мягко, без рывков.' },
-                { num: 'TE', name: 'Thoracic extension over towel', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Валик под верхнюю спину. Руки за голову. Мягко разгибайся, не прогибай поясницу.' },
-                { num: 'DH', name: 'Dead hang', sets: 2, mode: 'time', duration: 25, durationLabel: '20–30 сек', rest: 30, restLabel: '30 сек', tech: 'Вис на турнике, руки прямые. Расслабь плечи, тянись вниз, дыши.' },
-                { num: 'BD', name: 'Bird dog (левая / правая)', sets: 2, mode: 'reps', repsLabel: '8 на сторону', sides: true, rest: 30, restLabel: '30 сек', tech: 'Тянись рукой вперёд, ногой назад. Таз не вращается.' }
+                { num: 'CT', name: 'Chin tucks', sets: 2, mode: 'reps', repsLabel: '10', rest: 15, restLabel: '15 сек', tech: 'Мягко тяни затылок назад, пауза 2 сек. Не кивай. Плечи расслаблены.' },
+                { num: 'SWS', name: 'Serratus wall slide', sets: 2, mode: 'reps', repsLabel: '10', rest: 15, restLabel: '15 сек', tech: 'Руки на стене на уровне плеч. Протрагируй — округли верх спины, оттолкнись от стены.' },
+                { num: 'PTW', name: 'Prone Y + T + W', sets: 1, mode: 'reps', repsLabel: '8 каждое', rest: 30, restLabel: '30 сек', tech: 'Лёжа на животе. По 8 Y, T, W. Шея нейтрально, голову не поднимай.' },
+                { num: 'DH', name: 'Dead hang', sets: 2, mode: 'time', duration: 20, durationLabel: '20 сек', rest: 20, restLabel: '20 сек', tech: 'Вис на турнике, руки прямые. Расслабь плечи, тянись вниз, дыши.' }
             ]
         }
     };
@@ -84,42 +66,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Если для упражнения картинки нет — плитка просто не показывается.
     const exerciseImages = {
         // Day A
-        'Дыхание 360° (разминка)': null,
-        'Кошка-корова (разминка)': 'icons/giperextenzia.jpg',
         'Thoracic extension over towel (разминка)': 'icons/giperextenzia.jpg',
-        'Скольжение руками по стене (разминка)': 'icons/giperextenzia.jpg',
-        'Scapular pull-ups': 'icons/podtiagivaniechirokim.jpg',
-        'Chin tucks': null,
+        'Scapular pull-ups (активация)': 'icons/podtiagivaniechirokim.jpg',
         'Подтягивания / негативы': 'icons/podtiagivaniechirokim.jpg',
         'Тяга гантели одной рукой в наклоне (левая / правая)': 'icons/greblavnaklon.jpg',
-        'Band pull-apart': null,
-        'Band face pull': null,
         'Отжимания с протракцией': 'icons/otchimania.jpg',
-        'Prone Y + T + W + Blackburn': 'icons/podemgantelvstoronu.jpg',
-        'Внешняя ротация лёжа на боку (левая / правая)': null,
-        "Farmer's walk": null,
-        'Dead bug (левая / правая)': 'icons/csuknaspine.jpg',
-        'Планка': 'icons/planka.jpg',
+        'Band face pull': null,
+        'Chin tucks': null,
+        'Prone Y + T + W': 'icons/podemgantelvstoronu.jpg',
         // Day B
         'Ягодичный мостик (разминка)': 'icons/godicnmostik.jpg',
         'Приседания с гантелью у груди': 'icons/prisedansgantel.jpg',
-        'Болгарский сплит-присед (левая / правая)': 'icons/bolgarskisplitpris.jpg',
         'Румынская тяга с гантелями': null,
+        'Болгарский сплит-присед (левая / правая)': 'icons/bolgarskisplitpris.jpg',
         'Мостик на одной ноге (правая / левая)': 'icons/mostiknaodnounage.jpg',
-        'Bird dog (левая / правая)': null,
+        'Dead bug (левая / правая)': 'icons/csuknaspine.jpg',
         'Планка на боку (правая / левая)': 'icons/plankanaboku.jpg',
-        'Pallof press (левая / правая)': null,
+        'Планка': 'icons/planka.jpg',
         // Day C
         'Serratus wall slide (разминка)': null,
-        'Serratus wall slide': null,
         'Жим гантели одной рукой в полувыпаде (левая / правая)': 'icons/chimgantelnadgolov.jpg',
+        "Farmer's walk": null,
         // Day D
-        'Дыхание 360°': null,
-        'Prone Y / T / W / Blackburn': 'icons/podemgantelvstoronu.jpg',
-        'Растяжка грудных в дверном проёме (левая / правая)': null,
-        'Растяжка верхней трапеции (левая / правая)': null,
-        'Растяжка леватора лопатки (левая / правая)': null,
-        'Thoracic extension over towel': 'icons/giperextenzia.jpg',
+        'Serratus wall slide': null,
         'Dead hang': 'icons/podtiagivaniechirokim.jpg'
     };
 
@@ -143,10 +112,10 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 200)));
     }
     function dayLabel(k) {
-        if (k === 'A') return 'Верх + осанка (тяговый)';
+        if (k === 'A') return 'Верх (тяговый)';
         if (k === 'B') return 'Ноги + кор';
-        if (k === 'C') return 'Верх + осанка (жимовой)';
-        if (k === 'D') return 'Осанка (ежедневно)';
+        if (k === 'C') return 'Верх (жимовой)';
+        if (k === 'D') return 'Мини-рутина осанки';
         return k;
     }
     function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
@@ -158,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const parts = [];
         parts.push('== ПРОГРАММА ТРЕНИРОВОК (акцент — коррекция осанки) ==');
         parts.push('Цель: выровнять осанку (крыловидные лопатки, волна позвоночника, наклон головы, перекос плеч), сохранить мышечную массу и силу.');
-        parts.push('Сплит: Пн — A, Ср — B, Пт — C. Рутина D — ежедневно 10–15 мин.');
+        parts.push('Сплит: 3 силовых в неделю (Пн A, Ср B, Пт C) + мини-рутина D ежедневно 4 минуты.');
         parts.push('Инвентарь: 2 разборные гантели (до 12 кг каждая), турник, резинка 10 кг, валик/полотенце.');
         parts.push('');
         Object.keys(DAYS).forEach(dayKey => {
