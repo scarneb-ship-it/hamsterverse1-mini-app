@@ -21,28 +21,27 @@
 
 <div class="app" id="appContainer">
 
-    <!-- ===================== ЭКРАН: ТРЕНИРОВКА ===================== -->
     <section class="screen screen--home is-active" data-screen="home" id="screenHome">
         <header class="appbar">
             <img class="appbar__logo" src="icons/icon-192.png" alt="">
             <div class="appbar__brand">
                 <h1>Домашний фитнес</h1>
-                <p>3 дня · гантели + турник · осанка</p>
+                <p>3 силовых + рутина осанки</p>
             </div>
         </header>
 
         <nav class="tabs-container" id="tabsContainer">
             <div class="tabs" id="dayTabs">
-                <button class="tab" data-view="A"><span class="tab__label">Верх + осанка<em>Турник · лопатки</em></span></button>
-                <button class="tab" data-view="B"><span class="tab__label">Ноги + кор<em>Приседы · тяги</em></span></button>
-                <button class="tab" data-view="C"><span class="tab__label">Круговая · осанка<em>Жиросжигание</em></span></button>
+                <button class="tab" data-view="A"><span class="tab__label">A · Верх + осанка<em>Турник · лопатки</em></span></button>
+                <button class="tab" data-view="B"><span class="tab__label">B · Ноги + кор<em>Приседы · тяги</em></span></button>
+                <button class="tab" data-view="C"><span class="tab__label">C · Круговая<em>Жиросжигание</em></span></button>
+                <button class="tab" data-view="D"><span class="tab__label">D · Осанка<em>10–15 мин · каждый день</em></span></button>
             </div>
         </nav>
 
         <main class="main" id="mainContent"></main>
     </section>
 
-    <!-- ===================== ЭКРАН: ЖУРНАЛ ===================== -->
     <section class="screen screen--page" data-screen="log" id="screenLog" hidden>
         <header class="appbar appbar--page">
             <h1>Журнал тренировок</h1>
@@ -52,7 +51,6 @@
         </div>
     </section>
 
-    <!-- ===================== ЭКРАН: ИИ-ТРЕНЕР ===================== -->
     <section class="screen screen--ai" data-screen="ai" id="screenAi" hidden>
         <header class="appbar appbar--page">
             <h1>ИИ-тренер</h1>
@@ -66,7 +64,6 @@
         </form>
     </section>
 
-    <!-- ===================== ЭКРАН: НАСТРОЙКИ ===================== -->
     <section class="screen screen--page" data-screen="settings" id="screenSettings" hidden>
         <header class="appbar appbar--page">
             <h1>Настройки</h1>
@@ -100,7 +97,6 @@
 
 </div>
 
-<!-- ===================== НИЖНЯЯ НАВИГАЦИЯ ===================== -->
 <nav class="bottom-nav" id="bottomNav" role="navigation">
     <button class="bottom-nav__item is-active" data-action="home">
         <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4 20h5v-7h6v7h5V9l-8-5-8 5z"/></svg>
@@ -120,7 +116,6 @@
     </button>
 </nav>
 
-<!-- ===================== ПЛЕЕР (полноэкранный) ===================== -->
 <div class="player" id="player" hidden>
     <div class="player__top">
         <button class="player__close" id="playerClose" aria-label="Закрыть тренировку">
@@ -161,7 +156,6 @@
     </div>
 </div>
 
-<!-- ===================== МОДАЛКА: ЗАВЕРШЕНИЕ ===================== -->
 <div class="modal" id="qualityModal" hidden>
     <div class="modal__card">
         <div class="modal__handle"></div>
