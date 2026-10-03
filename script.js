@@ -4,18 +4,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const DAYS = {
         A: {
             title: 'День A · Верх + осанка',
-            subtitle: 'Турник + гантели · лопатки, спина, плечи. Не на максимум — работаем над техникой и симметрией.',
+            subtitle: 'Турник + гантели · лопатки, спина, плечи. Работаем над техникой и симметрией, не в отказ.',
             exercises: [
-                { num: 'SPU', name: 'Лопаточные подтягивания (разминка)', sets: 2, mode: 'reps', repsLabel: '8–10', rest: 30, restLabel: '30 сек', tech: 'Тяни лопатки вниз, руки прямые. Двигаются только лопатки.' },
-                { num: 'WS', name: 'Скольжение руками по стене (разминка)', sets: 2, mode: 'reps', repsLabel: '10–12', rest: 30, restLabel: '30 сек', tech: 'Прижимай запястья и локти к стене, скользи вверх. Ребра вниз.' },
-                { num: '238', name: 'Подтягивания средним хватом', sets: 4, mode: 'reps', repsLabel: '6–8 (не на максимум)', rest: 120, restLabel: '120 сек', tech: 'Тяни локти вниз, а не подбородок вверх. В конце своди лопатки. Оставляй 1–2 повтора в запасе.' },
-                { num: '178', name: 'Жим гантелей стоя', sets: 3, mode: 'reps', repsLabel: '8–10', rest: 90, restLabel: '90 сек', tech: 'Ребра вниз, таз нейтрально. Локти под 45°. Не выводи плечи вперёд.' },
-                { num: '179', name: 'Гребля в наклоне с паузой', sets: 3, mode: 'reps', repsLabel: '10–12', rest: 90, restLabel: '90 сек', tech: 'Тяни к поясу. Пауза 1 сек в верхней точке, своди лопатки.' },
-                { num: '14', name: 'Отжимания с протракцией', sets: 3, mode: 'reps', repsLabel: '10–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке оттолкнись дальше, округли спину. Двигаются именно лопатки.' },
-                { num: 'PRF', name: 'Разведение рук лёжа на животе', sets: 3, mode: 'reps', repsLabel: '12–15', rest: 60, restLabel: '60 сек', tech: 'Лёжа на животе, разводи руки и своди лопатки. Шея нейтрально, не поднимай голову.' },
-                { num: 'ER', name: 'Внешняя ротация лёжа на боку (левая / правая)', sets: 3, mode: 'reps', repsLabel: '12 на каждую', sides: true, rest: 45, restLabel: '45 сек', tech: 'Локоть прижат к боку. Вращай предплечье наружу медленно, без рывков. Вес 3 кг.' },
-                { num: 'BD', name: 'Bird dog (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8 на каждую', sides: true, rest: 45, restLabel: '45 сек', tech: 'Тянись рукой вперёд, ногой назад. Таз не вращается. Держи 2 сек в верхней точке.' },
-                { num: '4', name: 'Планка', sets: 3, mode: 'time', duration: 50, durationLabel: '45–60 сек', rest: 45, restLabel: '45 сек', tech: 'Ребра вниз, ягодицы сжаты. Тело — прямая линия от головы до пяток.' }
+                { num: 'BR', name: 'Дыхание 360° (разминка)', sets: 2, mode: 'time', duration: 60, durationLabel: '60 сек', rest: 30, restLabel: '30 сек', tech: 'Лёжа, руки на рёбрах. Вдох — рёбра расширяются в стороны, живот расслаблен. Выдох — рёбра опускаются.' },
+                { num: 'CC', name: 'Кошка-корова (разминка)', sets: 2, mode: 'reps', repsLabel: '8–10', rest: 30, restLabel: '30 сек', tech: 'Плавно прогибай и округляй спину, синхронно с дыханием.' },
+                { num: 'SPU', name: 'Лопаточные подтягивания', sets: 2, mode: 'reps', repsLabel: '8–10', rest: 30, restLabel: '30 сек', tech: 'Руки прямые. Тяни лопатки вниз к тазу. Двигаются только лопатки, локти не сгибаются.' },
+                { num: 'WS', name: 'Скольжение руками по стене', sets: 2, mode: 'reps', repsLabel: '10–12', rest: 30, restLabel: '30 сек', tech: 'Затылок, верх спины и таз у стены. Локти и запястья скользят, не отрываясь. Рёбра вниз, не выгибай поясницу.' },
+                { num: 'CT', name: 'Chin tucks', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Мягко потяни затылок назад, как будто упираешься в стену. Не кивай. Плечи расслаблены.' },
+                { num: 'PU', name: 'Подтягивания / негативы', sets: 4, mode: 'reps', repsLabel: '5–8 (RPE 7)', rest: 120, restLabel: '120 сек', tech: 'Начни с активного виса: лопатки вниз. Тяни локти вниз, не подбородок вверх. Не выдвигай голову вперёд.' },
+                { num: 'SPL', name: 'Жим гантели одной рукой в полувыпаде (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 90, restLabel: '90 сек', tech: 'Колено на полу, таз нейтрально, рёбра вниз. Жми вверх, не выгибая поясницу и не выдвигая голову.' },
+                { num: 'ROW', name: 'Гребля в наклоне с паузой', sets: 3, mode: 'reps', repsLabel: '10–12', rest: 90, restLabel: '90 сек', tech: 'Спина прямая, рёбра вниз. Тяни локтями к поясу. Пауза 1 сек, лопатки свести и опустить.' },
+                { num: 'PP', name: 'Отжимания с протракцией', sets: 3, mode: 'reps', repsLabel: '10–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке оттолкнись дальше, округли верх спины. Двигаются именно лопатки.' },
+                { num: 'PTW', name: 'Prone Y + T + W', sets: 3, mode: 'reps', repsLabel: '8–10 каждое', rest: 60, restLabel: '60 сек', tech: 'Лёжа на животе. Y — руки вперёд под углом, T — в стороны, W — локти согнуты. Шея нейтрально, голову не поднимай.' },
+                { num: 'ER', name: 'Внешняя ротация лёжа на боку (левая / правая)', sets: 3, mode: 'reps', repsLabel: '12 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Локоть прижат к боку. Вращай предплечье наружу медленно, без рывков.' },
+                { num: 'DB', name: 'Dead bug (левая / правая)', sets: 3, mode: 'reps', repsLabel: '10 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Поясница прижата к полу. Медленно выпрямляй противоположные руку и ногу.' },
+                { num: 'PL', name: 'Планка', sets: 3, mode: 'time', duration: 50, durationLabel: '45–60 сек', rest: 45, restLabel: '45 сек', tech: 'Рёбра вниз, ягодицы сжаты. Тело — прямая линия. Не проваливайся в пояснице.' }
             ]
         },
         B: {
@@ -23,51 +26,86 @@ document.addEventListener('DOMContentLoaded', function() {
             subtitle: 'Приседы, тяги, ягодицы · стабильный кор',
             exercises: [
                 { num: 'CC', name: 'Кошка-корова (разминка)', sets: 2, mode: 'reps', repsLabel: '8–10', rest: 30, restLabel: '30 сек', tech: 'Плавно прогибай и округляй спину, синхронно с дыханием.' },
-                { num: '15', name: 'Приседания с гантелью у груди', sets: 4, mode: 'reps', repsLabel: '8–10', rest: 120, restLabel: '120 сек', tech: 'Колени по носкам, спина прямая, грудь вверх. Пятки не отрываются.' },
-                { num: '58 / 66', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps', repsLabel: '10 на каждую', sides: true, rest: 90, restLabel: '90 сек', tech: 'Опора на заднюю ногу минимальна. Колено не заходит за носок.' },
+                { num: 'GM', name: 'Ягодичный мостик (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'В верхней точке сильно сожми ягодицы. Рёбра вниз, не выгибай поясницу.' },
+                { num: 'SQ', name: 'Приседания с гантелью у груди', sets: 4, mode: 'reps', repsLabel: '8–10 (RPE 7)', rest: 120, restLabel: '120 сек', tech: 'Колени по носкам, спина прямая, грудь вверх. Пятки не отрываются. Темп 3-1-1.' },
+                { num: 'BSS', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 90, restLabel: '90 сек', tech: 'Опора на заднюю ногу минимальна. Колено не заходит за носок. Таз не разворачивается.' },
                 { num: 'RDL', name: 'Румынская тяга с гантелями', sets: 3, mode: 'reps', repsLabel: '10–12', rest: 90, restLabel: '90 сек', tech: 'Таз назад, спина прямая. Чувствуй растяжение в бицепсе бедра, не округляй поясницу.' },
-                { num: '39', name: 'Ягодичный мостик с гантелью', sets: 3, mode: 'reps', repsLabel: '12–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке сильно сожми ягодицы. Ребра вниз, не выгибай поясницу.' },
-                { num: '75 / 74', name: 'Мостик на одной ноге (правая / левая)', sets: 3, mode: 'reps', repsLabel: '10 на каждую', sides: true, rest: 60, restLabel: '60 сек', tech: 'Не разворачивай таз. В верхней точке — сильное сжатие ягодицы.' },
-                { num: 'DB', name: 'Dead bug (левая / правая)', sets: 3, mode: 'reps', repsLabel: '10 на каждую', sides: true, rest: 45, restLabel: '45 сек', tech: 'Поясница прижата к полу. Медленно выпрямляй противоположные руку и ногу.' },
-                { num: '23 / 29', name: 'Планка на боку (правая / левая)', sets: 3, mode: 'time', duration: 35, durationLabel: '30–40 сек', sides: true, rest: 45, restLabel: '45 сек', tech: 'Без прогиба в пояснице. Тело — прямая линия от головы до стоп.' }
+                { num: 'SLB', name: 'Мостик на одной ноге (правая / левая)', sets: 3, mode: 'reps', repsLabel: '10–12 на сторону', sides: true, rest: 60, restLabel: '60 сек', tech: 'Не разворачивай таз. В верхней точке — сильное сжатие ягодицы.' },
+                { num: 'DB', name: 'Dead bug (левая / правая)', sets: 3, mode: 'reps', repsLabel: '10 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Поясница прижата к полу. Медленно выпрямляй противоположные руку и ногу.' },
+                { num: 'SP', name: 'Планка на боку (правая / левая)', sets: 3, mode: 'time', duration: 35, durationLabel: '30–40 сек', sides: true, rest: 45, restLabel: '45 сек', tech: 'Без прогиба в пояснице. Тело — прямая линия от головы до стоп.' },
+                { num: 'BD', name: 'Bird dog (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Тянись рукой вперёд, ногой назад. Таз не вращается. Держи 2 сек в верхней точке.' }
             ]
         },
         C: {
             title: 'День C · Круговая + осанка',
-            subtitle: '4 круга · отдых 90 сек между кругами · жиросжигание + лопатки',
+            subtitle: '4 круга · отдых 90 сек · жиросжигание + лопатки',
             circuit: true, rounds: 4, restBetweenRounds: 90,
             exercises: [
                 { num: 'SPU', name: 'Отжимания-лопатки', mode: 'reps', repsLabel: '12 раз', tech: 'Руки прямые, двигаются только лопатки. Включает переднюю зубчатую.' },
-                { num: '221', name: 'Медленный альпинист', mode: 'time', duration: 40, tech: 'Без прыжков. Плавно подтягивай колено к локтю, корпус стабилен.' },
-                { num: '75 / 74', name: 'Мостик на одной ноге (правая / левая)', mode: 'reps', repsLabel: '12 на каждую', sides: true, tech: 'В верхней точке — сильное сжатие ягодицы. Таз не разворачивается.' },
-                { num: '95', name: 'Жук на спине', mode: 'reps', repsLabel: '10 раз', tech: 'Идеальное упражнение для глубоких мышц живота. Поясница прижата к полу.' },
+                { num: 'MC', name: 'Медленный альпинист', mode: 'time', duration: 40, tech: 'Без прыжков. Плавно подтягивай колено к локтю. Если спина округляется — замени на dead bug.' },
+                { num: 'SLB', name: 'Мостик на одной ноге (правая / левая)', mode: 'reps', repsLabel: '12 на каждую', sides: true, tech: 'В верхней точке — сильное сжатие ягодицы. Таз не разворачивается.' },
+                { num: 'DB', name: 'Dead bug', mode: 'reps', repsLabel: '10 раз', tech: 'Поясница прижата к полу. Медленно выпрямляй противоположные руку и ногу.' },
                 { num: 'BD', name: 'Bird dog (левая / правая)', mode: 'reps', repsLabel: '8 на каждую', sides: true, tech: 'Тянись рукой вперёд, ногой назад. Таз не вращается.' },
-                { num: '23 / 29', name: 'Планка на боку (правая / левая)', mode: 'time', duration: 30, sides: true, tech: 'Без прогиба в пояснице. Тело — прямая линия.' }
+                { num: 'SP', name: 'Планка на боку (правая / левая)', mode: 'time', duration: 30, sides: true, tech: 'Без прогиба в пояснице. Тело — прямая линия.' },
+                { num: 'CT', name: 'Chin tucks', mode: 'reps', repsLabel: '10 раз', tech: 'Мягко тяни затылок назад, не кивай. Плечи расслаблены.' },
+                { num: 'PTW', name: 'Prone Y', mode: 'reps', repsLabel: '10 раз', tech: 'Лёжа на животе, руки вперёд под углом Y. Шея нейтрально, голову не поднимай.' }
+            ]
+        },
+        D: {
+            title: 'День D · Ежедневная рутина осанки',
+            subtitle: '10–15 минут · делай каждый день, отдельно от силовых',
+            exercises: [
+                { num: 'BR', name: 'Дыхание 360°', sets: 2, mode: 'time', duration: 60, durationLabel: '60 сек', rest: 15, restLabel: '15 сек', tech: 'Лёжа, руки на рёбрах. Вдох — рёбра расширяются в стороны, живот расслаблен.' },
+                { num: 'CT', name: 'Chin tucks', sets: 2, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'Мягко потяни затылок назад, не кивай. Плечи расслаблены.' },
+                { num: 'WS', name: 'Скольжение руками по стене', sets: 2, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'Затылок, верх спины и таз у стены. Локти и запястья скользят, не отрываясь.' },
+                { num: 'PTW', name: 'Prone Y / T / W', sets: 2, mode: 'reps', repsLabel: '8 каждое', rest: 30, restLabel: '30 сек', tech: 'Лёжа на животе. По 8 повторений Y, T и W. Шея нейтрально, голову не поднимай.' },
+                { num: 'PEC', name: 'Растяжка грудных в дверном проёме (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек на сторону', sides: true, rest: 20, restLabel: '20 сек', tech: 'Локоть на уровне плеча. Мягко тянись вперёд, не выгибай поясницу.' },
+                { num: 'UT', name: 'Растяжка верхней трапеции (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек на сторону', sides: true, rest: 20, restLabel: '20 сек', tech: 'Мягко наклони голову в сторону, плечо тянется вниз. Без боли в шее.' },
+                { num: 'LV', name: 'Растяжка леватора лопатки (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек на сторону', sides: true, rest: 20, restLabel: '20 сек', tech: 'Опусти подбородок к груди, поверни голову к плечу. Мягко, без рывков.' },
+                { num: 'TE', name: 'Thoracic extension over towel', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Валик под верхнюю спину. Руки за голову. Мягко разгибайся, не прогибай поясницу.' },
+                { num: 'SPU', name: 'Лопаточные подтягивания', sets: 2, mode: 'reps', repsLabel: '8', rest: 20, restLabel: '20 сек', tech: 'Руки прямые. Тяни лопатки вниз к тазу.' },
+                { num: 'BD', name: 'Bird dog (левая / правая)', sets: 2, mode: 'reps', repsLabel: '8 на сторону', sides: true, rest: 30, restLabel: '30 сек', tech: 'Тянись рукой вперёд, ногой назад. Таз не вращается.' }
             ]
         }
     };
 
-    // Картинки: используем существующие файлы для похожих упражнений.
-    // Если у нового упражнения нет картинки — плитка просто не покажется,
-    // приложение работает корректно (см. exerciseCard / setupStep).
+    // Картинки: переиспользуем существующие файлы для похожих движений.
+    // Если для упражнения картинки нет — плитка просто не показывается.
     const exerciseImages = {
-        'Лопаточные подтягивания (разминка)': 'icons/podtiagivaniechirokim.jpg',
-        'Скольжение руками по стене (разминка)': 'icons/giperextenzia.jpg',
-        'Подтягивания средним хватом': 'icons/podtiagivaniechirokim.jpg',
-        'Жим гантелей стоя': 'icons/chimgantelnadgolov.jpg',
+        // Day A
+        'Дыхание 360° (разминка)': 'icons/giperextenzia.jpg',
+        'Кошка-корова (разминка)': 'icons/giperextenzia.jpg',
+        'Лопаточные подтягивания': 'icons/podtiagivaniechirokim.jpg',
+        'Скольжение руками по стене': 'icons/giperextenzia.jpg',
+        'Chin tucks': null,
+        'Подтягивания / негативы': 'icons/podtiagivaniechirokim.jpg',
+        'Жим гантели одной рукой в полувыпаде (левая / правая)': 'icons/chimgantelnadgolov.jpg',
         'Гребля в наклоне с паузой': 'icons/greblavnaklon.jpg',
         'Отжимания с протракцией': 'icons/otchimania.jpg',
-        'Отжимания-лопатки': 'icons/otchimania.jpg',
-        'Разведение рук лёжа на животе': 'icons/podemgantelvstoronu.jpg',
-        'Кошка-корова (разминка)': 'icons/giperextenzia.jpg',
+        'Prone Y + T + W': 'icons/podemgantelvstoronu.jpg',
+        'Внешняя ротация лёжа на боку (левая / правая)': null,
+        'Dead bug (левая / правая)': 'icons/csuknaspine.jpg',
+        'Планка': 'icons/planka.jpg',
+        // Day B
+        'Ягодичный мостик (разминка)': 'icons/godicnmostik.jpg',
         'Приседания с гантелью у груди': 'icons/prisedansgantel.jpg',
         'Болгарский сплит-присед (левая / правая)': 'icons/bolgarskisplitpris.jpg',
-        'Ягодичный мостик с гантелью': 'icons/godicnmostik.jpg',
+        'Румынская тяга с гантелями': null,
         'Мостик на одной ноге (правая / левая)': 'icons/mostiknaodnounage.jpg',
-        'Планка': 'icons/planka.jpg',
         'Планка на боку (правая / левая)': 'icons/plankanaboku.jpg',
+        'Bird dog (левая / правая)': null,
+        // Day C
+        'Отжимания-лопатки': 'icons/otchimania.jpg',
         'Медленный альпинист': 'icons/medlennalpinist.jpg',
-        'Жук на спине': 'icons/csuknaspine.jpg'
+        'Dead bug': 'icons/csuknaspine.jpg',
+        'Prone Y': 'icons/podemgantelvstoronu.jpg',
+        // Day D
+        'Дыхание 360°': null,
+        'Prone Y / T / W': 'icons/podemgantelvstoronu.jpg',
+        'Растяжка грудных в дверном проёме (левая / правая)': null,
+        'Растяжка верхней трапеции (левая / правая)': null,
+        'Растяжка леватора лопатки (левая / правая)': null,
+        'Thoracic extension over towel': 'icons/giperextenzia.jpg'
     };
 
     /* ========== STORAGE ========== */
@@ -89,7 +127,13 @@ document.addEventListener('DOMContentLoaded', function() {
         log.unshift({ day: dayKey, date: new Date().toISOString(), quality: !!quality, weight: weight || null });
         localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 200)));
     }
-    function dayLabel(k) { if (k==='A') return 'Верх + осанка'; if (k==='B') return 'Ноги + кор'; if (k==='C') return 'Круговая + осанка'; return k; }
+    function dayLabel(k) {
+        if (k === 'A') return 'Верх + осанка';
+        if (k === 'B') return 'Ноги + кор';
+        if (k === 'C') return 'Круговая + осанка';
+        if (k === 'D') return 'Осанка (ежедневно)';
+        return k;
+    }
     function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
 
     function getAiHistory() { try { return JSON.parse(localStorage.getItem(AI_HISTORY_STORAGE)) || []; } catch(e) { return []; } }
@@ -451,10 +495,10 @@ ${buildWorkoutHistoryDescription()}
 
     /* ========== STATE ========== */
     let currentView = 'A';
-    const sessionDone = { A: new Set(), B: new Set(), C: new Set() };
+    const sessionDone = { A: new Set(), B: new Set(), C: new Set(), D: new Set() };
     let steps = [], stepIdx = 0, sessionType = null, timeLeft = 0, totalTime = 0, ticking = false, intervalId = null;
     let currentPhase = 'idle';
-    const dayOrder = ['A', 'B', 'C'];
+    const dayOrder = ['A', 'B', 'C', 'D'];
 
     /* ========== AUDIO / HAPTICS ========== */
     let audioCtx = null;
@@ -735,7 +779,7 @@ ${buildWorkoutHistoryDescription()}
     }
     function markExerciseProgress(step) {
         if (step.kind!=='work') return;
-        if (sessionType==='A'||sessionType==='B'||sessionType==='C') sessionDone[sessionType].add(step.exIdx);
+        if (sessionDone[sessionType]) sessionDone[sessionType].add(step.exIdx);
     }
     function closePlayer() {
         clearInterval(intervalId); ticking=false;
@@ -747,7 +791,7 @@ ${buildWorkoutHistoryDescription()}
         speak('Тренировка завершена. Отличная работа!', true);
         haptic([100, 60, 100, 60, 100]);
         closePlayer();
-        if (sessionType==='A'||sessionType==='B'||sessionType==='C') {
+        if (sessionDone[sessionType]) {
             qualityModal.hidden=false;
             qualityModal.dataset.day=sessionType;
             document.getElementById('workoutWeight').value = '';
@@ -765,7 +809,7 @@ ${buildWorkoutHistoryDescription()}
         scrollToTab(currentView);
     }
     function exerciseCard(ex, exIdx, dayKey) {
-        const done = sessionDone[dayKey].has(exIdx);
+        const done = sessionDone[dayKey] && sessionDone[dayKey].has(exIdx);
         const repsText = ex.mode==='time'?(ex.durationLabel||`${ex.duration} сек`):ex.repsLabel;
         const imgSrc = exerciseImages[ex.name];
         const plateContent = imgSrc ? `<img src="${imgSrc}" alt="${ex.name}" class="plate">` : ``;
