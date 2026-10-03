@@ -4,31 +4,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const DAYS = {
         A: {
             title: 'День A · Верх (тяговый)',
-            subtitle: 'Турник, тяги, лопатки + бицепс. Фокус: нижняя трапеция, ромбовидные, передняя зубчатая.',
+            subtitle: 'Турник, тяги, бицепс, кор. Фокус: широчайшие, нижняя трапеция, ромбовидные, передняя зубчатая.',
             exercises: [
                 { num: 'SPU', name: 'Лопаточные подтягивания (разминка)', sets: 1, mode: 'reps', repsLabel: '8', rest: 30, restLabel: '30 сек', tech: 'Вис на турнике, руки прямые. Тяни лопатки вниз к тазу. Держи 1 сек внизу. Локти не сгибаются.' },
 
-                { num: 'PU', name: 'Подтягивания / негативы', sets: 4, mode: 'reps', repsLabel: '5–8 (RPE 7)', rest: 90, restLabel: '90 сек', tech: 'Начни с активного виса: лопатки вниз. Тяни локти вниз, не подбородок вверх. Не выдвигай голову вперёд.' },
-                { num: 'ROW1', name: 'Тяга гантели одной рукой в наклоне (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 75, restLabel: '75 сек', tech: 'Колено и рука на опоре, спина прямая. Локоть к поясу, пауза 1 сек, лопатка вниз и к позвоночнику.' },
+                { num: 'PU', name: 'Подтягивания / негативы', sets: 4, mode: 'reps', repsLabel: '4–8 (RPE 7)', rest: 90, restLabel: '90 сек', tech: 'Начни с активного виса: лопатки вниз. Тяни локти вниз, не подбородок вверх. Не выдвигай голову вперёд. Когда 4×8 станет лёгким — добавь вес (рюкзак).' },
+                { num: 'ROW1', name: 'Тяга гантели одной рукой в наклоне (левая / правая)', sets: 4, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 75, restLabel: '75 сек', tech: 'Колено и рука на опоре, спина прямая. Локоть к поясу, пауза 1–2 сек, лопатка вниз и к позвоночнику. Не разворачивай корпус.' },
                 { num: 'BFP', name: 'Тяга резинки к лицу', sets: 3, mode: 'reps', repsLabel: '15', rest: 45, restLabel: '45 сек', tech: 'Резинка на уровне лица. Тяни к лицу, локти в стороны, лопатки вниз.' },
-                { num: 'BB', name: 'Подъём гантелей на бицепс', sets: 3, mode: 'reps', repsLabel: '10–12', rest: 60, restLabel: '60 сек', tech: 'Локти прижаты к корпусу. Без раскачки, подконтрольно вниз 3 сек. В верхней точке сожми бицепс.' },
-                { num: 'PP', name: 'Отжимания с протракцией', sets: 3, mode: 'reps', repsLabel: '12–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке оттолкнись дальше, округли верх спины. Двигаются именно лопатки.' },
-                { num: 'PTW', name: 'Лёжа на животе: Y + T + W', sets: 2, mode: 'reps', repsLabel: '8 каждое', rest: 30, restLabel: '30 сек', tech: 'Лёжа на животе. Y — руки вперёд под углом, T — в стороны, W — локти согнуты. Шея нейтрально.' },
-                { num: 'DH', name: 'Вис на турнике (расслабленный)', sets: 2, mode: 'time', duration: 20, durationLabel: '20 сек', rest: 20, restLabel: '20 сек', tech: 'Вис на турнике, руки прямые. Расслабь плечи, тянись вниз, дыши.' }
+                { num: 'BB', name: 'Подъём гантелей на бицепс', sets: 3, mode: 'reps', repsLabel: '8–12', rest: 60, restLabel: '60 сек', tech: 'Локти прижаты к корпусу. Без раскачки, вниз 3 сек. В верхней точке сожми бицепс.' },
+                { num: 'PP', name: 'Отжимания с протракцией', sets: 3, mode: 'reps', repsLabel: '12–15', rest: 60, restLabel: '60 сек', tech: 'В верхней точке оттолкнись дальше, округли верх спины. Двигаются именно лопатки, локти прямые.' },
+                { num: 'DB', name: 'Мёртвый жук (dead bug)', sets: 3, mode: 'reps', repsLabel: '8 на сторону', rest: 30, restLabel: '30 сек', tech: 'Лёжа на спине, поясница прижата к полу, руки вверх, колени 90°. Медленно опусти противоположные руку и ногу на выдохе, вернись.' },
+                { num: 'RC', name: 'Обратные скручивания', sets: 3, mode: 'reps', repsLabel: '12–15', rest: 30, restLabel: '30 сек', tech: 'Лёжа на спине, колени к груди. Оторви таз от пола за счёт пресса, без раскачки. Медленно вниз.' }
             ]
         },
         B: {
             title: 'День B · Ноги + кор',
-            subtitle: 'Приседы, тяги, ягодицы · стабильный кор + растяжка сгибателей бедра.',
+            subtitle: 'Приседы, тяги, ягодицы, икры · стабильный кор + растяжка сгибателей бедра.',
             exercises: [
                 { num: 'GM', name: 'Ягодичный мостик (разминка)', sets: 1, mode: 'reps', repsLabel: '10', rest: 20, restLabel: '20 сек', tech: 'В верхней точке сильно сожми ягодицы. Рёбра вниз, не выгибай поясницу.' },
 
-                { num: 'SQ', name: 'Приседания с гантелью у груди', sets: 4, mode: 'reps', repsLabel: '8–10 (RPE 7)', rest: 90, restLabel: '90 сек', tech: 'Колени по носкам, спина прямая, грудь вверх. Пятки не отрываются. Темп 3-1-1.' },
-                { num: 'RDL', name: 'Румынская тяга с гантелями', sets: 3, mode: 'reps', repsLabel: '10–12', rest: 75, restLabel: '75 сек', tech: 'Таз назад, спина прямая. Чувствуй растяжение в бицепсе бедра, не округляй поясницу.' },
-                { num: 'BSS', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 75, restLabel: '75 сек', tech: 'Опора на заднюю ногу минимальна. Колено не заходит за носок. Таз не разворачивается.' },
-                { num: 'SLB', name: 'Мостик на одной ноге (правая / левая)', sets: 2, mode: 'reps', repsLabel: '10–12 на сторону', sides: true, rest: 45, restLabel: '45 сек', tech: 'Не разворачивай таз. В верхней точке — сильное сжатие ягодицы.' },
+                { num: 'SQ', name: 'Приседания с гантелью у груди', sets: 4, mode: 'reps', repsLabel: '10–12 (темп 3-1-1)', rest: 90, restLabel: '90 сек', tech: 'Колени по носкам, спина прямая, грудь вверх. Пятки не отрываются. Темп 3-1-1: вниз 3 сек, пауза 1 сек, вверх быстро. Когда лёгко — добавь паузу внизу 2 сек.' },
+                { num: 'RDL', name: 'Румынская тяга с гантелями', sets: 4, mode: 'reps', repsLabel: '10–12', rest: 75, restLabel: '75 сек', tech: 'Таз назад, спина прямая. Чувствуй растяжение в бицепсе бедра, не округляй поясницу. Вниз 3 сек.' },
+                { num: 'BSS', name: 'Болгарский сплит-присед (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 75, restLabel: '75 сек', tech: 'Опора на заднюю ногу минимальна. Колено не заходит за носок. Таз не разворачивается. Когда лёгко — поставь переднюю ногу на возвышение.' },
+                { num: 'CR', name: 'Подъёмы на носок на одной ноге (левая / правая)', sets: 3, mode: 'reps', repsLabel: '12–15 на сторону', sides: true, rest: 30, restLabel: '30 сек', tech: 'Носок на ступеньке или книге, держись за стену. Вверх, пауза 1 сек, вниз 3 сек до полного растяжения.' },
 
-                { num: 'PL', name: 'Планка', sets: 3, mode: 'time', duration: 40, durationLabel: '40 сек', rest: 40, restLabel: '40 сек', tech: 'Рёбра вниз, ягодицы сжаты. Тело — прямая линия.' },
+                { num: 'PL', name: 'Планка', sets: 3, mode: 'time', duration: 50, durationLabel: '50 сек', rest: 40, restLabel: '40 сек', tech: 'Рёбра вниз, ягодицы сжаты. Тело — прямая линия.' },
                 { num: 'SP', name: 'Планка на боку (правая / левая)', sets: 2, mode: 'time', duration: 35, durationLabel: '35 сек', sides: true, rest: 30, restLabel: '30 сек', tech: 'Без прогиба в пояснице. Тело — прямая линия от головы до стоп.' },
                 { num: 'HB', name: 'Hollow body hold', sets: 2, mode: 'time', duration: 20, durationLabel: '20 сек', rest: 30, restLabel: '30 сек', tech: 'Лёжа на спине, поясница прижата к полу. Рёбра вниз, руки за голову, ноги выпрямлены. Держи.' },
                 { num: 'HFS', name: 'Растяжка сгибателей бедра (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек', sides: true, rest: 15, restLabel: '15 сек', tech: 'Выпад на одно колено, таз подкручен (рёбра вниз, ягодицы сжаты). Тянись тазом вперёд. Растягивай переднюю часть бедра задней ноги.' }
@@ -36,70 +36,58 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         C: {
             title: 'День C · Верх (жимовой)',
-            subtitle: 'Жимы, грудь, трицепс + лопатки. Без перегрузки шеи и поясницы.',
+            subtitle: 'Жимы, грудь, плечи, руки + лопатки. Без перегрузки шеи и поясницы.',
             exercises: [
                 { num: 'SWS', name: 'Скольжение по стене для зубчатой мышцы (разминка)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Руки на стене на уровне плеч. Протрагируй — оттолкнись от стены, округли верх спины. Двигаются лопатки, не поясница.' },
 
-                { num: 'FP', name: 'Жим гантелей лёжа на полу', sets: 3, mode: 'reps', repsLabel: '8–10', rest: 90, restLabel: '90 сек', tech: 'Лёжа на полу, колени согнуты. Локти под 45°. Опускай до касания пола трицепсом, пауза 1 сек, жми вверх. Своди грудь в верхней точке.' },
+                { num: 'FP', name: 'Жим гантелей лёжа на полу', sets: 4, mode: 'reps', repsLabel: '8–12', rest: 90, restLabel: '90 сек', tech: 'Лёжа на полу, колени согнуты. Локти под 45°. Опускай до касания пола трицепсом, пауза 1 сек, жми вверх. Своди грудь в верхней точке.' },
                 { num: 'SPL', name: 'Жим гантели одной рукой в полувыпаде (левая / правая)', sets: 3, mode: 'reps', repsLabel: '8–10 на сторону', sides: true, rest: 75, restLabel: '75 сек', tech: 'Колено на полу, таз нейтрально, рёбра вниз. Жми вверх, не выгибая поясницу и не выдвигая голову.' },
-                { num: 'PP', name: 'Отжимания от пола', sets: 3, mode: 'reps', repsLabel: '10–15', rest: 60, restLabel: '60 сек', tech: 'Классические отжимания. Тело — прямая линия, локти под 45°, грудь к полу. Рёбра вниз, не прогибай поясницу.' },
-                { num: 'PU', name: 'Подтягивания / негативы', sets: 3, mode: 'reps', repsLabel: '5–8', rest: 90, restLabel: '90 сек', tech: 'Начни с активного виса: лопатки вниз. Тяни локти вниз. Не выдвигай голову вперёд.' },
+                { num: 'PP', name: 'Отжимания от пола', sets: 3, mode: 'reps', repsLabel: '10–15', rest: 60, restLabel: '60 сек', tech: 'Тело — прямая линия, локти под 45°, грудь к полу. Рёбра вниз, не прогибай поясницу. Когда 3×15 легко — ноги на возвышение.' },
+                { num: 'CU', name: 'Подтягивания обратным хватом', sets: 3, mode: 'reps', repsLabel: '5–8', rest: 90, restLabel: '90 сек', tech: 'Хват снизу на ширине плеч. Лопатки вниз, тяни локти к рёбрам, голову не выдвигай. Вниз 3 сек — это главный стимул для бицепса.' },
+                { num: 'LR', name: 'Разведение гантелей в стороны', sets: 3, mode: 'reps', repsLabel: '12–15 (6–8 кг)', rest: 45, restLabel: '45 сек', tech: 'Вес 6–8 кг на руку. Лёгкий наклон корпуса, локти чуть согнуты, поднимай до уровня плеч без раскачки. Плечи не тяни к ушам.' },
                 { num: 'TRI', name: 'Разгибание одной гантели из-за головы', sets: 3, mode: 'reps', repsLabel: '10–12', rest: 60, restLabel: '60 сек', tech: 'Сидя или стоя, одна гантель за головой двумя руками. Локти смотрят вверх, не разводи их. Разгибай полностью, сожми трицепс.' },
-                { num: 'BFP', name: 'Тяга резинки к лицу', sets: 3, mode: 'reps', repsLabel: '15', rest: 45, restLabel: '45 сек', tech: 'Резинка на уровне лица. Тяни к лицу, локти в стороны, лопатки вниз.' },
-                { num: 'CT', name: 'Ретракция шеи (chin tucks)', sets: 2, mode: 'reps', repsLabel: '10', rest: 30, restLabel: '30 сек', tech: 'Мягко тяни затылок назад, пауза 2 сек. Плечи расслаблены.' },
-                { num: 'PTW', name: 'Лёжа на животе: Y + T + W', sets: 2, mode: 'reps', repsLabel: '8 каждое', rest: 30, restLabel: '30 сек', tech: 'Лёжа на животе. По 8 Y, T, W. Шея нейтрально, голову не поднимай.' }
+                { num: 'HC', name: 'Сгибания «молот»', sets: 2, mode: 'reps', repsLabel: '10–12', rest: 45, restLabel: '45 сек', tech: 'Хват нейтральный (ладони друг к другу). Локти у корпуса, без раскачки, вниз 3 сек.' },
+                { num: 'BFP', name: 'Тяга резинки к лицу', sets: 3, mode: 'reps', repsLabel: '15', rest: 45, restLabel: '45 сек', tech: 'Резинка на уровне лица. Тяни к лицу, локти в стороны, лопатки вниз.' }
             ]
         },
         D: {
-            title: 'День D · Мини-рутина осанки (4 мин)',
-            subtitle: 'Минимум для переобучения мозга. Делай каждый день или встрой в быт.',
+            title: 'День D · Осанка (6–8 мин)',
+            subtitle: 'Делай в дни отдыха (вт, чт, сб, вс). В тренировочные дни разминка внутри самой тренировки.',
             exercises: [
                 { num: 'CT', name: 'Ретракция шеи (chin tucks)', sets: 2, mode: 'reps', repsLabel: '10', rest: 15, restLabel: '15 сек', tech: 'Мягко тяни затылок назад, пауза 2 сек. Не кивай. Плечи расслаблены.' },
                 { num: 'SWS', name: 'Скольжение по стене для зубчатой мышцы', sets: 2, mode: 'reps', repsLabel: '10', rest: 15, restLabel: '15 сек', tech: 'Руки на стене на уровне плеч. Протрагируй — округли верх спины, оттолкнись от стены.' },
-                { num: 'PTW', name: 'Лёжа на животе: Y + T + W', sets: 1, mode: 'reps', repsLabel: '8 каждое', rest: 30, restLabel: '30 сек', tech: 'Лёжа на животе. По 8 Y, T, W. Шея нейтрально, голову не поднимай.' },
+                { num: 'TE', name: 'Разгибание грудного отдела на валике', sets: 2, mode: 'reps', repsLabel: '8–10', rest: 15, restLabel: '15 сек', tech: 'Скрученное полотенце поперёк спины на уровне нижних лопаток. Руки за головой, мягко прогнись назад над валиком, не ломая поясницу. Выдох на прогибе.' },
+                { num: 'PTW', name: 'Лёжа на животе: Y + T + W', sets: 2, mode: 'reps', repsLabel: '8 каждое', rest: 30, restLabel: '30 сек', tech: 'Лёжа на животе. По 8 Y, T, W. Шея нейтрально, голову не поднимай.' },
+                { num: 'PEC', name: 'Растяжка груди в дверном проёме (левая / правая)', sets: 2, mode: 'time', duration: 30, durationLabel: '30 сек', sides: true, rest: 10, restLabel: '10 сек', tech: 'Предплечье на косяке, локоть на уровне плеча. Шаг вперёд, грудь раскрывается. Без боли, дыши.' },
                 { num: 'DH', name: 'Вис на турнике (расслабленный)', sets: 2, mode: 'time', duration: 20, durationLabel: '20 сек', rest: 20, restLabel: '20 сек', tech: 'Вис на турнике, руки прямые. Расслабь плечи, тянись вниз, дыши.' }
             ]
         }
     };
 
     // Картинки — только там, где изображение точно соответствует упражнению.
-    // Если для упражнения картинки нет — плитка просто не показывается.
     const exerciseImages = {
-        // Day A
-        'Лопаточные подтягивания (разминка)': null,
         'Подтягивания / негативы': 'icons/podtiagivaniechirokim.jpg',
         'Тяга гантели одной рукой в наклоне (левая / правая)': 'icons/greblavnaklon.jpg',
-        'Тяга резинки к лицу': null,
-        'Подъём гантелей на бицепс': null,
-        'Отжимания с протракцией': 'icons/otchimania.jpg',
-        'Лёжа на животе: Y + T + W': null,
-        'Вис на турнике (расслабленный)': null,
-        // Day B
         'Ягодичный мостик (разминка)': 'icons/godicnmostik.jpg',
         'Приседания с гантелью у груди': 'icons/prisedansgantel.jpg',
-        'Румынская тяга с гантелями': null,
         'Болгарский сплит-присед (левая / правая)': 'icons/bolgarskisplitpris.jpg',
-        'Мостик на одной ноге (правая / левая)': 'icons/mostiknaodnounage.jpg',
         'Планка': 'icons/planka.jpg',
         'Планка на боку (правая / левая)': 'icons/plankanaboku.jpg',
-        'Hollow body hold': null,
-        'Растяжка сгибателей бедра (левая / правая)': null,
-        // Day C
-        'Скольжение по стене для зубчатой мышцы (разминка)': null,
-        'Жим гантелей лёжа на полу': null,
-        'Жим гантели одной рукой в полувыпаде (левая / правая)': null,
-        'Отжимания от пола': 'icons/otchimania.jpg',
-        'Разгибание одной гантели из-за головы': null,
-        'Ретракция шеи (chin tucks)': null,
-        // Day D
-        'Скольжение по стене для зубчатой мышцы': null
+        'Отжимания от пола': 'icons/otchimania.jpg'
     };
 
     /* ========== STORAGE ========== */
     const LOG_KEY = 'ironplan_log_v2';
     const AI_KEY_STORAGE = 'openrouter_api_key';
     const AI_HISTORY_STORAGE = 'ai_chat_history';
-    const FREE_MODELS = ['nex-agi/nex-n2.5-pro:free'];
+    const WEAK_SIDE_KEY = 'weak_side';
+    // Резервные модели: если первая недоступна, пробуем следующую. Проверь актуальные названия на openrouter.ai/models
+    const FREE_MODELS = [
+        'nex-agi/nex-n2.5-pro:free',
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'google/gemma-3-27b-it:free'
+    ];
+    const AI_HISTORY_LIMIT = 20;
 
     function getApiKey() { return (localStorage.getItem(AI_KEY_STORAGE) || '').trim(); }
     function setApiKey(key) {
@@ -107,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (clean) localStorage.setItem(AI_KEY_STORAGE, clean);
         else localStorage.removeItem(AI_KEY_STORAGE);
     }
+    function getWeakSide() { return localStorage.getItem(WEAK_SIDE_KEY) || ''; }
 
     function getLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; } }
     function saveLogEntry(dayKey, quality, weight) {
@@ -128,10 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function buildProgramDescription() {
         const parts = [];
-        parts.push('== ПРОГРАММА ТРЕНИРОВОК (акцент — коррекция осанки) ==');
-        parts.push('Цель: выровнять осанку (крыловидные лопатки, волна позвоночника, наклон головы, перекос плеч), сохранить мышечную массу и силу, умеренно добавить бицепс/грудь/трицепс.');
-        parts.push('Сплит: 3 силовых в неделю (Пн A, Ср B, Пт C) + мини-рутина D ежедневно 4 минуты. Формат: 40 минут на тренировку.');
-        parts.push('Инвентарь: 2 разборные гантели (до 12 кг каждая), турник, резинка 10 кг, валик/полотенце.');
+        parts.push('== ПРОГРАММА ТРЕНИРОВОК (акцент — осанка, рельеф и снижение жира) ==');
+        parts.push('Пользователь: парень 25 лет, 82,5 кг, рост 176,5 см, жир ~15–20%, талия 86 см, живот по пупку 91 см, грудь 105, бицепс 36, бедро 57, голень 36, шея 39, предплечье 29.');
+        parts.push('Цели: сохранить текущие результаты, плоский живот и снижение жира, больше бицепс, сильнее и крепче ноги, развитая грудь и спина, красивый силуэт, максимально выровнять осанку.');
+        parts.push('Особенности: крыловидные лопатки, боковое искривление позвоночника и небольшой наклон головы. Диагнозов не ставь; при боли, онемении, слабости руки или одностороннем «крыле» советуй обратиться к врачу (ортопед/невролог/физиотерапевт).');
+        parts.push('Сплит: 3 силовых в неделю (Пн A, Ср B, Пт C). Рутина D (6–8 минут) — в дни отдыха. Формат: 40–45 минут на тренировку.');
+        parts.push('Инвентарь: 2 разборные гантели по 12,5 кг каждая (всего 25 кг), турник, резинка 10 кг, валик/полотенце. Вес ограничен, поэтому усложняй темпом, паузами, односторонними вариантами и объёмом.');
         parts.push('');
         Object.keys(DAYS).forEach(dayKey => {
             const day = DAYS[dayKey];
@@ -144,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             parts.push('');
         });
-        parts.push('Принципы: качество > вес; RPE 6–8; линейная прогрессия +0.5–1 кг, когда верх диапазона повторов даётся при RPE ≤ 7; deload каждые 6–8 недель.');
+        parts.push('Принципы: качество > вес; RPE 6–8; двойная прогрессия: когда все подходы дошли до верха диапазона при RPE ≤ 7 — добавляй вес или усложняй вариант; deload каждые 6–8 недель. Фокус по питанию: дефицит 300–500 ккал, белок 130–165 г/день, 8–10 тыс. шагов, сон 7+ часов.');
         return parts.join('\n');
     }
 
@@ -154,8 +145,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const lines = log.slice(0, 10).map(e => {
             const date = new Date(e.date);
             const dateStr = date.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit' });
-            const weight = e.weight ? `, вес гантелей: ${e.weight} кг` : '';
-            return `${dateStr} — День ${e.day} (${dayLabel(e.day)}), качество: ${e.quality?'максимум':'не максимум'}${weight}`;
+            const weight = e.weight ? `, вес гантели: ${e.weight} кг` : '';
+            return `${dateStr} — День ${e.day} (${dayLabel(e.day)}), все подходы до верха диапазона: ${e.quality?'да':'нет'}${weight}`;
         });
         return 'Последние тренировки:\n' + lines.join('\n');
     }
@@ -184,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const restMinus = $('#restMinus');
     const restPlus = $('#restPlus');
     const themeSelect = $('#themeSelect');
+    const weakSideSelect = $('#weakSideSelect');
     const voiceToggleCheckbox = $('#voiceToggle');
     const openaiKeyInput = $('#openaiKey');
     const saveKeyBtn = $('#saveKeyBtn');
@@ -312,6 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
         themeSelect.value = localStorage.getItem('theme') || 'system';
         applyTheme(themeSelect.value);
     }
+    if (weakSideSelect) weakSideSelect.value = getWeakSide();
     if (openaiKeyInput) openaiKeyInput.value = getApiKey();
 
     /* ========== AI TRAINER ========== */
@@ -321,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderAiHistory() {
         aiMessages.innerHTML = '';
         if (aiHistory.length === 0) {
-            addMessageToDOM('assistant', 'Привет! Я твой фитнес-помощник. Задай вопрос о тренировках, упражнениях или плане.');
+            addMessageToDOM('assistant', 'Привет! Я твой фитнес-помощник. Задай вопрос о тренировках, упражнениях, питании или плане.');
         } else {
             aiHistory.forEach(msg => addMessageToDOM(msg.role, msg.content));
         }
@@ -381,44 +374,40 @@ ${buildWorkoutHistoryDescription()}
 Если пользователь спрашивает о конкретном упражнении, уточняй его параметры из программы.
 Если просят список упражнений — перечисляй их по дням, кратко и структурированно.`;
 
+        const messages = [{ role: 'system', content: systemPrompt }, ...aiHistory.slice(-AI_HISTORY_LIMIT)];
+        let lastError = 'нет ответа';
+
         try {
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': location.origin || 'https://localhost'
-                },
-                body: JSON.stringify({
-                    model: FREE_MODELS[0],
-                    messages: [{ role: 'system', content: systemPrompt }, ...aiHistory],
-                    max_tokens: 2000,
-                    temperature: 0.7
-                })
-            });
-            let data = null;
-            try { data = await response.json(); } catch (e) { data = null; }
+            for (const model of FREE_MODELS) {
+                try {
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': location.origin || 'https://localhost'
+                        },
+                        body: JSON.stringify({ model, messages, max_tokens: 2000, temperature: 0.7 })
+                    });
+                    let data = null;
+                    try { data = await response.json(); } catch (e) { data = null; }
 
-            removeTypingIndicator();
-
-            if (response.ok && data) {
-                const choice = data.choices && data.choices[0];
-                const message = choice && choice.message;
-                let botReply = '';
-                if (message) {
-                    if (typeof message.content === 'string' && message.content.length) botReply = message.content;
-                    else if (typeof message.reasoning === 'string' && message.reasoning.length) botReply = message.reasoning;
+                    const reply = data && data.choices && data.choices[0] && data.choices[0].message
+                        ? data.choices[0].message.content : '';
+                    if (response.ok && typeof reply === 'string' && reply.trim()) {
+                        removeTypingIndicator();
+                        addMessage('assistant', reply.trim());
+                        return;
+                    }
+                    const err = (data && (data.error?.message || data.error)) || (response.ok ? 'пустой ответ модели' : `HTTP ${response.status}`);
+                    lastError = typeof err === 'string' ? err : JSON.stringify(err);
+                    if (response.status === 401) break; // неверный ключ — другие модели не помогут
+                } catch (error) {
+                    lastError = error.message;
                 }
-                botReply = String(botReply || '').trim();
-                if (!botReply) botReply = 'Модель вернула пустой ответ. Попробуйте переформулировать запрос.';
-                addMessage('assistant', botReply);
-            } else {
-                const errorMsg = (data && (data.error?.message || data.error)) || `HTTP ${response.status}`;
-                addMessage('assistant', `Ошибка API: ${typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)}`);
             }
-        } catch (error) {
             removeTypingIndicator();
-            addMessage('assistant', `Ошибка сети: ${error.message}.`);
+            addMessage('assistant', `Ошибка API: ${lastError}`);
         } finally {
             aiBusy = false;
         }
@@ -515,11 +504,13 @@ ${buildWorkoutHistoryDescription()}
 
     function buildDaySteps(dayKey, fromExerciseIdx=0) {
         const day = DAYS[dayKey]; const list = [];
+        // Односторонние упражнения начинаем со слабой стороны
+        const sideOrder = getWeakSide() === 'правая' ? ['правая','левая'] : ['левая','правая'];
         day.exercises.forEach((ex,exIdx)=>{
             if (exIdx < fromExerciseIdx) return;
             for (let s=1; s<=ex.sets; s++) {
                 if (ex.sides) {
-                    ['левая','правая'].forEach(side=>list.push(enrichStep(makeWorkStep(ex,exIdx,day.exercises.length,s,ex.sets,side),ex)));
+                    sideOrder.forEach(side=>list.push(enrichStep(makeWorkStep(ex,exIdx,day.exercises.length,s,ex.sets,side),ex)));
                 } else {
                     list.push(enrichStep(makeWorkStep(ex,exIdx,day.exercises.length,s,ex.sets,null),ex));
                 }
@@ -806,7 +797,7 @@ ${buildWorkoutHistoryDescription()}
             return `<div class="log-item">
                 <span><b>${e.day}</b> · ${dayLabel(e.day)}${weightText}</span>
                 <span>${fmtDate(e.date)}</span>
-                <span>${e.quality?'макс.':'норм'}</span>
+                <span>${e.quality?'до верха':'не везде'}</span>
             </div>`;
         }).join('');
     }
@@ -839,7 +830,8 @@ ${buildWorkoutHistoryDescription()}
     player.addEventListener('touchend', e=>{
         const dy = (e.changedTouches[0].clientY - touchStartY);
         if (dy < -50 && !e.target.closest('button')) {
-            closePlayer(); renderView();
+            // Подтверждение, чтобы случайный свайп не прерывал тренировку
+            if (confirm('Закрыть тренировку?')) { closePlayer(); renderView(); }
         }
     });
 
@@ -872,6 +864,10 @@ ${buildWorkoutHistoryDescription()}
     if (themeSelect) themeSelect.addEventListener('change', e=>{
         localStorage.setItem('theme', e.target.value);
         applyTheme(e.target.value);
+    });
+    if (weakSideSelect) weakSideSelect.addEventListener('change', e=>{
+        localStorage.setItem(WEAK_SIDE_KEY, e.target.value);
+        haptic(10);
     });
     if (voiceToggleCheckbox) voiceToggleCheckbox.addEventListener('change', e=>{
         voiceEnabled = e.target.checked;
