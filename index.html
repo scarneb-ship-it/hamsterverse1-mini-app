@@ -26,16 +26,16 @@
             <img class="appbar__logo" src="icons/icon-192.png" alt="">
             <div class="appbar__brand">
                 <h1>Домашний фитнес</h1>
-                <p>3 силовых + мини-рутина осанки</p>
+                <p>3 силовых + рутина осанки в дни отдыха</p>
             </div>
         </header>
 
         <nav class="tabs-container" id="tabsContainer">
             <div class="tabs" id="dayTabs">
-                <button class="tab" data-view="A"><span class="tab__label">A · Верх (тяговый)<em>Турник · тяги · лопатки</em></span></button>
-                <button class="tab" data-view="B"><span class="tab__label">B · Ноги + кор<em>Приседы · тяги · кор</em></span></button>
-                <button class="tab" data-view="C"><span class="tab__label">C · Верх (жимовой)<em>Жимы · лопатки · зубчатая</em></span></button>
-                <button class="tab" data-view="D"><span class="tab__label">D · Мини-рутина<em>4 мин · каждый день</em></span></button>
+                <button class="tab" data-view="A"><span class="tab__label">A · Верх (тяговый)<em>Турник · тяги · бицепс · кор</em></span></button>
+                <button class="tab" data-view="B"><span class="tab__label">B · Ноги + кор<em>Приседы · тяги · икры</em></span></button>
+                <button class="tab" data-view="C"><span class="tab__label">C · Верх (жимовой)<em>Жимы · плечи · руки</em></span></button>
+                <button class="tab" data-view="D"><span class="tab__label">D · Осанка<em>6–8 мин · в дни отдыха</em></span></button>
             </div>
         </nav>
 
@@ -84,6 +84,15 @@
                         <input type="checkbox" id="voiceToggle">
                         <span class="toggle__slider"></span>
                     </label>
+                </div>
+                <div class="setting-item setting-item--column">
+                    <span>Слабая сторона</span>
+                    <select id="weakSideSelect">
+                        <option value="">Не задана (сначала левая)</option>
+                        <option value="левая">Левая</option>
+                        <option value="правая">Правая</option>
+                    </select>
+                    <p class="setting-hint">В односторонних упражнениях работу начнём со слабой стороны, а на другой сделай не больше повторов.</p>
                 </div>
                 <div class="setting-item setting-item--column">
                     <span>API ключ OpenRouter</span>
@@ -160,14 +169,14 @@
     <div class="modal__card">
         <div class="modal__handle"></div>
         <h3>Тренировка завершена</h3>
-        <p>Во всех подходах базовых упражнений получилось выполнить максимум повторений?</p>
+        <p>В базовых упражнениях все подходы дошли до верхней границы повторений (с запасом 2–3 повтора)? Если да, на следующей тренировке можно прибавить вес или усложнить вариант.</p>
         <div class="weight-input">
-            <label for="workoutWeight">Вес гантелей (кг):</label>
-            <input type="number" id="workoutWeight" min="0" step="0.5" placeholder="Напр. 10" inputmode="decimal">
+            <label for="workoutWeight">Рабочий вес гантели (кг, на одну руку):</label>
+            <input type="number" id="workoutWeight" min="0" step="0.5" placeholder="Напр. 12.5" inputmode="decimal">
         </div>
         <div class="modal__row">
-            <button class="btn btn--ghost" id="qualityNo">Не всегда</button>
-            <button class="btn btn--primary" id="qualityYes">Максимум!</button>
+            <button class="btn btn--ghost" id="qualityNo">Не везде</button>
+            <button class="btn btn--primary" id="qualityYes">Да, везде</button>
         </div>
     </div>
 </div>
