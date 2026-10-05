@@ -21,27 +21,28 @@
 
 <div class="app" id="appContainer">
 
+    <!-- ===================== ЭКРАН: ТРЕНИРОВКА ===================== -->
     <section class="screen screen--home is-active" data-screen="home" id="screenHome">
         <header class="appbar">
             <img class="appbar__logo" src="icons/icon-192.png" alt="">
             <div class="appbar__brand">
                 <h1>Домашний фитнес</h1>
-                <p>3 силовых + рутина осанки в дни отдыха</p>
+                <p>3 дня · гантели + турник</p>
             </div>
         </header>
 
         <nav class="tabs-container" id="tabsContainer">
             <div class="tabs" id="dayTabs">
-                <button class="tab" data-view="A"><span class="tab__label">A · Верх (тяговый)<em>Турник · тяги · бицепс · кор</em></span></button>
-                <button class="tab" data-view="B"><span class="tab__label">B · Ноги + кор<em>Приседы · тяги · икры</em></span></button>
-                <button class="tab" data-view="C"><span class="tab__label">C · Верх (жимовой)<em>Жимы · плечи · руки</em></span></button>
-                <button class="tab" data-view="D"><span class="tab__label">D · Осанка<em>6–8 мин · в дни отдыха</em></span></button>
+                <button class="tab" data-view="A"><span class="tab__label">Силовая база<em>Турник + гантели</em></span></button>
+                <button class="tab" data-view="B"><span class="tab__label">Мышечный рост<em>Гипертрофия</em></span></button>
+                <button class="tab" data-view="C"><span class="tab__label">Жиросжигание<em>Круговая · кор</em></span></button>
             </div>
         </nav>
 
         <main class="main" id="mainContent"></main>
     </section>
 
+    <!-- ===================== ЭКРАН: ЖУРНАЛ ===================== -->
     <section class="screen screen--page" data-screen="log" id="screenLog" hidden>
         <header class="appbar appbar--page">
             <h1>Журнал тренировок</h1>
@@ -51,6 +52,7 @@
         </div>
     </section>
 
+    <!-- ===================== ЭКРАН: ИИ-ТРЕНЕР ===================== -->
     <section class="screen screen--ai" data-screen="ai" id="screenAi" hidden>
         <header class="appbar appbar--page">
             <h1>ИИ-тренер</h1>
@@ -64,6 +66,7 @@
         </form>
     </section>
 
+    <!-- ===================== ЭКРАН: НАСТРОЙКИ ===================== -->
     <section class="screen screen--page" data-screen="settings" id="screenSettings" hidden>
         <header class="appbar appbar--page">
             <h1>Настройки</h1>
@@ -86,15 +89,6 @@
                     </label>
                 </div>
                 <div class="setting-item setting-item--column">
-                    <span>Слабая сторона</span>
-                    <select id="weakSideSelect">
-                        <option value="">Не задана (сначала левая)</option>
-                        <option value="левая">Левая</option>
-                        <option value="правая">Правая</option>
-                    </select>
-                    <p class="setting-hint">В односторонних упражнениях работу начнём со слабой стороны, а на другой сделай не больше повторов.</p>
-                </div>
-                <div class="setting-item setting-item--column">
                     <span>API ключ OpenRouter</span>
                     <input type="password" id="openaiKey" placeholder="sk-or-v1-..." autocomplete="off">
                     <p class="setting-hint">Получите бесплатный ключ на openrouter.ai/keys. Хранится только на этом устройстве.</p>
@@ -106,6 +100,7 @@
 
 </div>
 
+<!-- ===================== НИЖНЯЯ НАВИГАЦИЯ ===================== -->
 <nav class="bottom-nav" id="bottomNav" role="navigation">
     <button class="bottom-nav__item is-active" data-action="home">
         <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4 20h5v-7h6v7h5V9l-8-5-8 5z"/></svg>
@@ -125,6 +120,7 @@
     </button>
 </nav>
 
+<!-- ===================== ПЛЕЕР (полноэкранный) ===================== -->
 <div class="player" id="player" hidden>
     <div class="player__top">
         <button class="player__close" id="playerClose" aria-label="Закрыть тренировку">
@@ -165,18 +161,19 @@
     </div>
 </div>
 
+<!-- ===================== МОДАЛКА: ЗАВЕРШЕНИЕ ===================== -->
 <div class="modal" id="qualityModal" hidden>
     <div class="modal__card">
         <div class="modal__handle"></div>
         <h3>Тренировка завершена</h3>
-        <p>В базовых упражнениях все подходы дошли до верхней границы повторений (с запасом 2–3 повтора)? Если да, на следующей тренировке можно прибавить вес или усложнить вариант.</p>
+        <p>Во всех подходах базовых упражнений получилось выполнить максимум повторений?</p>
         <div class="weight-input">
-            <label for="workoutWeight">Рабочий вес гантели (кг, на одну руку):</label>
-            <input type="number" id="workoutWeight" min="0" step="0.5" placeholder="Напр. 12.5" inputmode="decimal">
+            <label for="workoutWeight">Вес гантелей (кг):</label>
+            <input type="number" id="workoutWeight" min="0" step="0.5" placeholder="Напр. 10" inputmode="decimal">
         </div>
         <div class="modal__row">
-            <button class="btn btn--ghost" id="qualityNo">Не везде</button>
-            <button class="btn btn--primary" id="qualityYes">Да, везде</button>
+            <button class="btn btn--ghost" id="qualityNo">Не всегда</button>
+            <button class="btn btn--primary" id="qualityYes">Максимум!</button>
         </div>
     </div>
 </div>
@@ -185,5 +182,3 @@
 <script>
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
-</body>
-</html>
